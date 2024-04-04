@@ -9,9 +9,9 @@ import {
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
+import { Request, Response } from 'express'
 import { AuthService } from './auth.service'
 import { AuthDto } from './dto/auth.dto'
-import { Request, Response } from 'express'
 
 @Controller('auth')
 export class AuthController {
@@ -44,21 +44,21 @@ export class AuthController {
 	@Post('login/access-token')
 	async getNewTokens(
 		@Req() req: Request,
-		@Res({passthrough: true}) res:Response
-		) {
-			const refreshTokenFromCookies = 
-				req.cookies[this.authService.REFRESH_TOKEN_NAME]
+		@Res({ passthrough: true }) res: Response
+	) {
+		const refreshTokenFromCookies =
+			req.cookies[this.authService.REFRESH_TOKEN_NAME]
 
-			if(!refreshTokenFromCookies){
-				this.authService.removeRefreshTokenToResponse(res)
-				throw new UnauthorizedException('Refresh token not passed')
-			}
+		if (!refreshTokenFromCookies) {
+			this.authService.removeRefreshTokenFromResponse(res)
+			throw new UnauthorizedException('Refresh token not passed')
+		}
 
-			const {refreshToken, ...response} = await this.authService.getNewTokens(
-				refreshTokenFromCookies
-			)
+		const { refreshToken, ...response } = await this.authService.getNewTokens(
+			refreshTokenFromCookies
+		)
 
-			this.authService.addRefreshTokenToResponse(res, refreshToken)
+		this.authService.addRefreshTokenToResponse(res, refreshToken)
 
 		return response
 	}
@@ -66,8 +66,7 @@ export class AuthController {
 	@HttpCode(200)
 	@Post('logout')
 	async logout(@Res({ passthrough: true }) res: Response) {
-		this.authService.removeRefreshTokenToResponse(res)
-
+		this.authService.removeRefreshTokenFromResponse(res)
 		return true
 	}
 }

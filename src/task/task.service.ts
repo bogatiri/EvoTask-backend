@@ -27,7 +27,7 @@ export class TaskService {
 		})
 	}
 
-	async update(dto: Partial<TaskDto>, taskId: string, userId: string ){
+	async update(dto: Partial<TaskDto>, taskId: string, userId: string) {
 		return this.prisma.task.update({
 			where: {
 				userId,

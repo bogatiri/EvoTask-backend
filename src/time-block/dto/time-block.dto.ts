@@ -4,12 +4,11 @@ export class TimeBlockDto {
 	@IsString()
 	name: string
 
-	@IsString()
 	@IsOptional()
+	@IsString()
 	color?: string
 
 	@IsNumber()
-	@IsOptional()
 	duration: number
 
 	@IsNumber()

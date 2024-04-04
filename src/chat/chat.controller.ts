@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
 	Body,
 	Controller,
@@ -12,25 +13,25 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { TaskDto } from './task.dto'
-import { TaskService } from './task.service'
+import { ChatDto } from './chat.dto'
+import { ChatService } from './chat.service'
 
-@Controller('user/tasks')
-export class TaskController {
-	constructor(private readonly taskService: TaskService) {}
+@Controller('user/chats')
+export class ChatController {
+	constructor(private readonly chatService: ChatService) {}
 
 	@Get()
 	@Auth()
 	async getAll(@CurrentUser('id') userId: string) {
-		return this.taskService.getAll(userId)
+		return this.chatService.getAll(userId)
 	}
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post()
 	@Auth()
-	async create(@Body() dto: TaskDto, @CurrentUser('id') userId: string) {
-		return this.taskService.create(dto, userId)
+	async create(@Body() dto: ChatDto, @CurrentUser('id') userId: string) {
+		return this.chatService.create(dto, userId)
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -38,17 +39,17 @@ export class TaskController {
 	@Put(':id')
 	@Auth()
 	async update(
-		@Body() dto: TaskDto,
+		@Body() dto: ChatDto,
 		@CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
-		return this.taskService.update(dto, id, userId)
+		return this.chatService.update(dto, id, userId)
 	}
 
 	@HttpCode(200)
 	@Delete(':id')
 	@Auth()
 	async delete(@Param('id') id: string) {
-		return this.taskService.delete(id)
+		return this.chatService.delete(id)
 	}
 }

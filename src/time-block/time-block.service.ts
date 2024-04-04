@@ -21,7 +21,6 @@ export class TimeBlockService {
 		return this.prisma.timeBlock.create({
 			data: {
 				...dto,
-
 				user: {
 					connect: {
 						id: userId
@@ -59,7 +58,7 @@ export class TimeBlockService {
 			ids.map((id, order) =>
 				this.prisma.timeBlock.update({
 					where: { id },
-					data: {order}
+					data: { order }
 				})
 			)
 		)

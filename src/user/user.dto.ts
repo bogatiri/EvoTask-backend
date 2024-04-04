@@ -23,7 +23,7 @@ export class PomodoroSettingsDto {
 	@IsNumber()
 	@Min(1)
 	@Max(10)
-	intervalCount?: number
+	intervalsCount?: number
 }
 
 export class UserDto extends PomodoroSettingsDto {
@@ -37,9 +37,8 @@ export class UserDto extends PomodoroSettingsDto {
 
 	@IsOptional()
 	@MinLength(6, {
-		message: 'Пароль должен быть не менее 6 символов'
+		message: 'Password must be at least 6 characters long'
 	})
-
 	@IsString()
 	password?: string
 }

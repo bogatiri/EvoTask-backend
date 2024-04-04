@@ -5,15 +5,16 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { UserService } from 'src/user/user.service'
-import { AuthDto } from './dto/auth.dto'
 import { verify } from 'argon2'
 import { Response } from 'express'
+import { UserService } from 'src/user/user.service'
+import { AuthDto } from './dto/auth.dto'
 
 @Injectable()
 export class AuthService {
 	EXPIRE_DAY_REFRESH_TOKEN = 1
 	REFRESH_TOKEN_NAME = 'refreshToken'
+
 	constructor(
 		private jwt: JwtService,
 		private userService: UserService
@@ -33,7 +34,7 @@ export class AuthService {
 	async register(dto: AuthDto) {
 		const oldUser = await this.userService.getByEmail(dto.email)
 
-		if (oldUser) throw new BadRequestException('User already exist')
+		if (oldUser) throw new BadRequestException('User already exists')
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password, ...user } = await this.userService.create(dto)
@@ -48,7 +49,7 @@ export class AuthService {
 
 	async getNewTokens(refreshToken: string) {
 		const result = await this.jwt.verifyAsync(refreshToken)
-		if (!result) throw new UnauthorizedException('Invalud refresh token')
+		if (!result) throw new UnauthorizedException('Invalid refresh token')
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { password, ...user } = await this.userService.getById(result.id)
@@ -77,9 +78,11 @@ export class AuthService {
 
 	private async validateUser(dto: AuthDto) {
 		const user = await this.userService.getByEmail(dto.email)
+
 		if (!user) throw new NotFoundException('User not found')
 
 		const isValid = await verify(user.password, dto.password)
+
 		if (!isValid) throw new UnauthorizedException('Invalid password')
 
 		return user
@@ -99,7 +102,7 @@ export class AuthService {
 		})
 	}
 
-	removeRefreshTokenToResponse(res: Response) {
+	removeRefreshTokenFromResponse(res: Response) {
 		res.cookie(this.REFRESH_TOKEN_NAME, '', {
 			httpOnly: true,
 			domain: 'localhost',

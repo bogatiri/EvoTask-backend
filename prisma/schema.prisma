@@ -8,66 +8,77 @@ datasource db {
 }
 
 model User{
-  id                String        @id @default(uuid())
-  createdAt         DateTime      @default(now())  @map("created_at")
-  updatedAt         DateTime      @updatedAt       @map("updated_at")
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
 
-  email             String        @unique
+  role              Roles?
+  email             String          @unique
   name              String?
+  about             String?
   password          String
 
-  workInterval      Int?          @default(50)     @map("work_interval")
-  breakInterval     Int?          @default(10)     @map("break_interval")
-  intervalsCount    Int?          @default(7)      @map("intervals_count")
+  workInterval      Int?            @default(50)     @map("work_interval")
+  breakInterval     Int?            @default(10)     @map("break_interval")
+  intervalsCount    Int?            @default(7)      @map("intervals_count")
 
   tasks             Task[]
+  cards             Card[]          @relation("UserCards")
+  card              Card[]
+  boards            Board[]         @relation("UserBoards")
+  board             Board[]
+  lists             List[]          @relation("UserLists")
+  list              List[]
+  chats             Chat[]          @relation("UserChats")
+  chat              Chat[]
+  messages          Message[]
+  attachments       Attachment[]
+  comments          Comment[]
   timeBlocks        TimeBlock[]
   pomodoroSessions  PomodoroSession[]
 
   @@map("user")
 }
-
-
 model Task {
-  id                String        @id @default(uuid())
-  createdAt         DateTime      @default(now())  @map("created_at")
-  updatedAt         DateTime      @updatedAt       @map("updated_at")
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
 
   name              String
   priority          Priority?
-  isCompleted       Boolean?      @default(false) @map("is_completed")
+  isCompleted       Boolean?        @default(false) @map("is_completed")
 
-  user User                       @relation(fields: [userId], references: [id])
-  userId            String        @map("user_id")
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
   
   @@map("task")
 }
 
 model TimeBlock{
-  id                String        @id @default(uuid())
-  createdAt         DateTime      @default(now())  @map("created_at")
-  updatedAt         DateTime      @updatedAt       @map("updated_at")
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
 
   name              String
   color             String?
-  order             Int           @default(1)
+  order             Int             @default(1)
   duration          Int
 
-  user              User          @relation(fields: [userId], references: [id])
-  userId            String        @map("user_id")
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
   
   @@map("time_block")
 }
 
 model PomodoroSession{
-  id                String        @id @default(uuid())
-  createdAt         DateTime      @default(now())  @map("created_at")
-  updatedAt         DateTime      @updatedAt       @map("updated_at")
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
 
-  isCompleted       Boolean?      @default(false) @map("is_completed")
+  isCompleted       Boolean?        @default(false) @map("is_completed")
 
-  user              User          @relation(fields: [userId], references: [id])
-  userId            String        @map("user_id")
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
 
   rounds            PomodoroRound[]
 
@@ -76,21 +87,235 @@ model PomodoroSession{
 }
 
 model PomodoroRound{
-  id                String           @id @default(uuid())
-  createdAt         DateTime         @default(now())  @map("created_at")
-  updatedAt         DateTime         @updatedAt       @map("updated_at")
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
 
-  totalSeconds      Int              @map("total_seconds")
-  isCompleted       Boolean?         @default(false) @map("is_completed")
+  totalSeconds      Int             @map("total_seconds")
+  isCompleted       Boolean?        @default(false) @map("is_completed")
 
-  session           PomodoroSession  @relation(fields: [pomodoroSessionId], references: [id], onDelete: Cascade)
-  pomodoroSessionId String           @map("user_id")
+  session           PomodoroSession @relation(fields: [pomodoroSessionId], references: [id], onDelete: Cascade)
+  pomodoroSessionId String          @map("user_id")
   
   @@map("pomodoro_round")
+}
+
+model Board {
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  name              String
+  description       String?         @db.Text
+
+  imageId           String?
+  imageThumbUrl     String?         @db.Text
+  imageFullUrl      String?         @db.Text
+  imageUserName     String?         @db.Text
+  imageLinkHTML     String?         @db.Text
+
+  creator           User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
+
+  users             User[]          @relation("UserBoards")
+  sprints           Sprint[]
+  lists             List[]          
+  attachments       Attachment[]
+  comments          Comment[]
+  chats             Chat[]  
+
+  @@map("board")
+}
+
+model List {
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  name              String
+  order             Int
+  type              Type_list?
+
+  creator           User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
+
+  board             Board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId           String          @map("board_id")
+  
+  users             User[]          @relation("UserLists")
+
+  cards             Card[]
+  comments          Comment[]
+  chats             Chat[]
+  
+  @@map("list")
+}
+
+model Card{
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  name              String
+  priority          Priority?
+  order             Int
+  completed         Boolean?
+  description       String?         @db.Text
+
+  list              List            @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId            String          @map("list_id")
+
+  user              User[]          @relation("UserCards")
+
+  creator           User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
+
+  sprint            Sprint?          @relation(fields: [sprintId], references: [id])
+  sprintId          String?          @map("sprint_id")
+
+  attachments       Attachment[]
+  comments          Comment[]
+  chats             Chat[]
+
+  @@map("card")
+  @@index([listId])
+}
+
+model Sprint{
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  name              String
+  goal              String
+  startDate         DateTime        @map("start_date")
+  endDate           DateTime        @map("end_date")
+  status            Status
+
+  board             Board           @relation(fields: [boardId], references: [id])
+  boardId           String          @map("board_id")
+
+  cards             Card[]
+
+  @@map("sprint")
+}
+
+model Chat {
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  name              String 
+  
+  board             Board?           @relation(fields: [boardId], references: [id])
+  boardId           String?          @map("board_id")
+
+  list              List?            @relation(fields: [listId], references: [id])
+  listId            String?          @map("list_id")
+
+  card              Card?            @relation(fields:[cardId], references: [id])
+  cardId            String?          @map("card_id")
+
+  user              User[]           @relation("UserChats")
+
+  creator           User             @relation(fields: [userId], references: [id])
+  userId            String           @map("user_id")
+
+  messages          Message[]       
+  
+  @@map("chat")
+}
+
+model Message {
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  text              String
+
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
+
+  chat              Chat           @relation(fields: [chatId], references: [id])
+  chatId            String         @map("chat_id")
+
+  attachments       Attachment[]
+
+  @@map("message")
+}
+
+model Attachment {
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  url               String
+
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
+
+  board             Board?           @relation(fields: [boardId], references: [id])
+  boardId           String?          @map("board_id")
+
+  card              Card?            @relation(fields:[cardId], references: [id])
+  cardId            String?          @map("card_id")
+
+  messages          Message?         @relation(fields: [messageId], references: [id])
+  messageId         String?          @map("message_id")
+  
+  @@map("attachment")
+}
+
+model Comment {
+  id                String          @id @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  text              String
+
+  user              User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
+
+  card              Card?            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId            String?          @map("card_id")
+  
+  board             Board?          @relation(fields: [boardId], references: [id],  onDelete: Cascade)
+  boardId           String?         @map("board_id")
+
+  list              List?           @relation(fields: [listId], references: [id],  onDelete: Cascade)
+  listId            String?         @map("list_id")
+
+  @@map("comment")
 }
 
 enum Priority{
   low
   medium
   high
+}
+
+enum Roles{
+  scrum_master
+  project_Owner
+  administrator
+  project_manager
+  team_member
+  developer
+  analyst
+  qa_tester
+  stakeholder
+  auditor
+}
+
+enum Type_list{
+  backlog
+  to_do
+  in_progress
+  done
+}
+
+enum Status{
+  planned
+  active
+  completed
 }

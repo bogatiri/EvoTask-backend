@@ -12,25 +12,25 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { TaskDto } from './task.dto'
-import { TaskService } from './task.service'
+import { BoardDto } from './board.dto'
+import { BoardService } from './board.service'
 
-@Controller('user/tasks')
-export class TaskController {
-	constructor(private readonly taskService: TaskService) {}
+@Controller('user/boards')
+export class BoardController {
+	constructor(private readonly boardService: BoardService) {}
 
 	@Get()
 	@Auth()
 	async getAll(@CurrentUser('id') userId: string) {
-		return this.taskService.getAll(userId)
+		return this.boardService.getAll(userId)
 	}
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post()
 	@Auth()
-	async create(@Body() dto: TaskDto, @CurrentUser('id') userId: string) {
-		return this.taskService.create(dto, userId)
+	async create(@Body() dto: BoardDto, @CurrentUser('id') userId: string) {
+		return this.boardService.create(dto, userId)
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -38,17 +38,17 @@ export class TaskController {
 	@Put(':id')
 	@Auth()
 	async update(
-		@Body() dto: TaskDto,
+		@Body() dto: BoardDto,
 		@CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
-		return this.taskService.update(dto, id, userId)
+		return this.boardService.update(dto, id, userId)
 	}
 
 	@HttpCode(200)
 	@Delete(':id')
 	@Auth()
 	async delete(@Param('id') id: string) {
-		return this.taskService.delete(id)
+		return this.boardService.delete(id)
 	}
 }

@@ -3,13 +3,14 @@ import { hash } from 'argon2'
 import { AuthDto } from 'src/auth/dto/auth.dto'
 import { PrismaService } from 'src/prisma.service'
 import { UserDto } from './user.dto'
+
 import { startOfDay, subDays } from 'date-fns'
 
 @Injectable()
 export class UserService {
 	constructor(private prisma: PrismaService) {}
 
-	async getById(id: string) {
+	getById(id: string) {
 		return this.prisma.user.findUnique({
 			where: {
 				id
@@ -80,6 +81,7 @@ export class UserService {
 			name: '',
 			password: await hash(dto.password)
 		}
+
 		return this.prisma.user.create({
 			data: user
 		})
@@ -99,7 +101,7 @@ export class UserService {
 			data,
 			select: {
 				name: true,
-				email: true,
+				email: true
 			}
 		})
 	}
