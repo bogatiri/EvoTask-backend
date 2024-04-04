@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
-import { CardDto } from './card.dto'
+import { CardDto, CardOrderUpdateDto } from './card.dto'
 
 @Injectable()
 export class CardService {
@@ -39,6 +39,19 @@ export class CardService {
 				id: cardId
 			},
 			data: dto
+		})
+	}
+
+	async updateOrder(cardsWithNewOrder: CardOrderUpdateDto[]) {
+		return this.prisma.$transaction(async prisma => {
+			const updatePromises = cardsWithNewOrder.map(({ id, order }) =>
+				prisma.card.update({
+					where: { id },
+					data: { order },
+				})
+			)
+				
+			return Promise.all(updatePromises)
 		})
 	}
 

@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { CardDto } from './card.dto'
+import { CardDto, CardOrderDto } from './card.dto'
 import { CardService } from './card.service'
 
 @Controller('user/cards')
@@ -38,6 +38,15 @@ export class CardController {
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
+	@Put('update-order')
+	@Auth()
+	async updateOrder(@Body() cardOrderDto: CardOrderDto, ) {
+		console.log('CardOrderDTO', cardOrderDto.cards)
+		return this.cardService.updateOrder(cardOrderDto.cards)
+	}
+
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
 	@Put(':id')
 	@Auth()
 	async update(
@@ -45,6 +54,7 @@ export class CardController {
 		@CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
+		console.log('DTO', dto)
 		return this.cardService.update(dto, id, userId)
 	}
 
