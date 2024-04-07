@@ -20,6 +20,14 @@ import { ListService } from './list.service'
 export class ListController {
 	constructor(private readonly listService: ListService) {}
 
+	@Get(':id')
+	@Auth()
+	async findByBoardId(
+		@Param('id') id: string
+	) {
+		return this.listService.findByBoardId( id )
+	}
+
 	@Get()
 	@Auth()
 	async getAll(@CurrentUser('id') userId: string) {

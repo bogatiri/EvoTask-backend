@@ -20,6 +20,14 @@ import { CardService } from './card.service'
 export class CardController {
 	constructor(private readonly cardService: CardService) {}
 
+	@Get(':id')
+	@Auth()
+	async findByListId(
+		@Param('id') id: string
+	) {
+		return this.cardService.findByListId( id )
+	}
+
 	@Get()
 	@Auth()
 	async getAll(@CurrentUser('id') userId: string) {
@@ -41,7 +49,7 @@ export class CardController {
 	@Put('update-order')
 	@Auth()
 	async updateOrder(@Body() cardOrderDto: CardOrderDto, ) {
-		console.log('CardOrderDTO', cardOrderDto.cards)
+	
 		return this.cardService.updateOrder(cardOrderDto.cards)
 	}
 
@@ -54,7 +62,7 @@ export class CardController {
 		@CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
-		console.log('DTO', dto)
+
 		return this.cardService.update(dto, id, userId)
 	}
 

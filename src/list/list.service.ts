@@ -6,6 +6,14 @@ import { ListDto } from './list.dto'
 export class ListService {
 	constructor(private prisma: PrismaService) {}
 
+	async findByBoardId(id: string){
+		return this.prisma.list.findMany({
+			where: {
+				boardId: id
+			}
+		})
+	}
+
 	async getAll(userId: string) {
 		return this.prisma.list.findMany({
 			where: {

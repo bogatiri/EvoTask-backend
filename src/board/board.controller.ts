@@ -19,6 +19,15 @@ import { BoardService } from './board.service'
 export class BoardController {
 	constructor(private readonly boardService: BoardService) {}
 
+
+	@Get(':id')
+	@Auth()
+	async findById(
+		@Param('id') id: string
+	) {
+		return this.boardService.findById( id )
+	}
+
 	@Get()
 	@Auth()
 	async getAll(@CurrentUser('id') userId: string) {

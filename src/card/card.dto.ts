@@ -23,7 +23,7 @@ export class CardDto {
 
 	@IsNumber()
 	@IsOptional()
-	order: number
+	order?: number
 
 	@IsBoolean()
 	@IsOptional()

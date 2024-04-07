@@ -6,6 +6,14 @@ import { CardDto, CardOrderUpdateDto } from './card.dto'
 export class CardService {
 	constructor(private prisma: PrismaService) {}
 
+	async findByListId(id: string) {
+		return this.prisma.card.findMany({
+			where: {
+				listId: id
+			}
+		})
+	}
+
 	async getAll(userId: string) {
 		return this.prisma.card.findMany({
 			where: {

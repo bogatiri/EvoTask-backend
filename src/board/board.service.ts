@@ -6,6 +6,14 @@ import { BoardDto } from './board.dto'
 export class BoardService {
 	constructor(private prisma: PrismaService) {}
 
+	async findById( id: string) {
+		return this.prisma.board.findUnique({
+			where: {
+				id
+			}
+		})
+	}
+
 	async getAll(userId: string) {
 		return this.prisma.board.findMany({
 			where: {
