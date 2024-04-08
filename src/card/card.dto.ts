@@ -51,4 +51,7 @@ export class CardOrderUpdateDto {
 
 	@IsNumber()
 	order: number
+
+	@IsUUID()
+	listId: string
 }

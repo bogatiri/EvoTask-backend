@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
-import { ListDto } from './list.dto'
+import { ListDto, ListOrderUpdateDto } from './list.dto'
 
 @Injectable()
 export class ListService {
@@ -10,6 +10,12 @@ export class ListService {
 		return this.prisma.list.findMany({
 			where: {
 				boardId: id
+			},
+			orderBy: {
+				order: ('asc')
+			},
+			include: {
+				cards: true
 			}
 		})
 	}
@@ -18,11 +24,17 @@ export class ListService {
 		return this.prisma.list.findMany({
 			where: {
 				userId
+			},
+			orderBy: {
+				order: ('asc')
 			}
 		})
 	}
 
 	async create(dto: ListDto, boardId: string, userId: string) {
+		const currentMaxOrder = await this.prisma.list.count({
+			where: { boardId },
+		});
 		return this.prisma.list.create({
 			data: {
 				...dto,
@@ -35,11 +47,25 @@ export class ListService {
 					connect: {
 						id: userId
 					}
-				}
+				},
+				order: currentMaxOrder + 1
 			}
 		})
 	}
 
+	async updateOrder(listsWithNewOrder: ListOrderUpdateDto[]) {
+		return this.prisma.$transaction(async prisma => {
+			const updatePromises = listsWithNewOrder.map(({ id, order }) =>
+				prisma.list.update({
+					where: { id },
+					data: { order },
+				})
+			)
+				
+			return Promise.all(updatePromises)
+		})
+	}
+	
 	async update(dto: Partial<ListDto>, listId: string, userId: string) {
 		return this.prisma.list.update({
 			where: {
@@ -49,6 +75,8 @@ export class ListService {
 			data: dto
 		})
 	}
+
+
 
 	async delete(listId: string) {
 		return this.prisma.list.delete({

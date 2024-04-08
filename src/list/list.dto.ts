@@ -1,6 +1,6 @@
 import { Type_list } from '@prisma/client'
-import { Transform } from 'class-transformer'
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
+import { Transform, Type } from 'class-transformer'
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator'
 
 export class ListDto {
 	@IsString()
@@ -23,4 +23,19 @@ export class ListDto {
 	@IsString()
 	@IsOptional()
 	description?: string
+}
+
+export class ListOrderDto {
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => ListOrderUpdateDto)
+	lists: ListOrderUpdateDto[]
+}
+
+export class ListOrderUpdateDto {
+	@IsUUID()
+	id: string
+
+	@IsNumber()
+	order: number
 }

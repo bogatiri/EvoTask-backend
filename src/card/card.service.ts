@@ -10,6 +10,17 @@ export class CardService {
 		return this.prisma.card.findMany({
 			where: {
 				listId: id
+			},
+			orderBy: {
+				order: ('asc')
+			}
+		})
+	}
+
+	async getById(id: string) {
+		return this.prisma.card.findUnique({
+			where: {
+				id
 			}
 		})
 	}
@@ -23,6 +34,10 @@ export class CardService {
 	}
 
 	async create(dto: CardDto, userId: string, listId: string) {
+		const currentMaxOrder = await this.prisma.card.count({
+			where: { listId: listId },
+		});
+	
 		return this.prisma.card.create({
 			data: {
 				...dto,
@@ -35,7 +50,8 @@ export class CardService {
 					connect: {
 						id: userId
 					}
-				}
+				},
+				order: currentMaxOrder + 1,
 			}
 		})
 	}
@@ -52,10 +68,17 @@ export class CardService {
 
 	async updateOrder(cardsWithNewOrder: CardOrderUpdateDto[]) {
 		return this.prisma.$transaction(async prisma => {
-			const updatePromises = cardsWithNewOrder.map(({ id, order }) =>
+			const updatePromises = cardsWithNewOrder.map(({ id, order, listId }) =>
 				prisma.card.update({
 					where: { id },
-					data: { order },
+					data: { 
+						order,
+						list:{
+							connect:{
+								id: listId
+							}
+						}
+					},
 				})
 			)
 				

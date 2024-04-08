@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { ListDto } from './list.dto'
+import { ListDto, ListOrderDto } from './list.dto'
 import { ListService } from './list.service'
 
 @Controller('user/lists')
@@ -47,6 +47,15 @@ export class ListController {
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
+	@Put('update-order')
+	@Auth()
+	async updateOrder(@Body() listOrderDto: ListOrderDto, ) {
+	
+		return this.listService.updateOrder(listOrderDto.lists)
+	}
+	
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
 	@Put(':id')
 	@Auth()
 	async update(
@@ -56,6 +65,8 @@ export class ListController {
 	) {
 		return this.listService.update(dto, id, userId)
 	}
+
+
 
 	@HttpCode(200)
 	@Delete(':id')

@@ -28,6 +28,14 @@ export class CardController {
 		return this.cardService.findByListId( id )
 	}
 
+	@Get('card/:id')
+	@Auth()
+	async getById(
+		@Param('id') id: string
+	) {
+		return this.cardService.getById( id )
+	}
+
 	@Get()
 	@Auth()
 	async getAll(@CurrentUser('id') userId: string) {
