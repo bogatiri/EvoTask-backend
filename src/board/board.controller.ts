@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {
 	Body,
 	Controller,
@@ -53,6 +54,16 @@ export class BoardController {
 	) {
 		return this.boardService.update(dto, id, userId)
 	}
+
+	@HttpCode(200)
+  @Put(':id/users')
+  async addUserToBoard(
+    @Param('id') boardId: string, 
+    @Body('email') email: string 
+  ){
+
+    return this.boardService.addUserToBoard(email, boardId);
+  }
 
 	@HttpCode(200)
 	@Delete(':id')

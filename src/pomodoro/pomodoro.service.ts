@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
 import { PomodoroRoundDto, PomodoroSessionDto } from './pomodoro.dto'
@@ -68,6 +69,7 @@ export class PomodoroService {
 		pomodoroId: string,
 		userId: string
 	) {
+		console.log(dto)
 		return this.prisma.pomodoroSession.update({
 			where: {
 				userId,

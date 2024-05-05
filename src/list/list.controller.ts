@@ -66,7 +66,14 @@ export class ListController {
 		return this.listService.update(dto, id, userId)
 	}
 
-
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
+	@Post('copy')
+	@Auth()
+	async copyList(@Body() body: any) {
+		const { listId, boardId} = body
+		return this.listService.copyList( listId, boardId)
+	}
 
 	@HttpCode(200)
 	@Delete(':id')

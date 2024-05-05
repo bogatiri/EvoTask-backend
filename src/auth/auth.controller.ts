@@ -27,6 +27,21 @@ export class AuthController {
 		return response
 	}
 
+  @Post('send-code')
+  async sendConfirmationCode(@Body() authDto: AuthDto) {
+    return this.authService.sendConfirmationCode(authDto);
+  }
+
+	@Post('check-code')
+  async checkConfirmationCode(
+		@Body() body: any,
+	) {
+		const {checkCodeDto, dto} = body
+    // В CheckCodeDto должны быть определены все поля, необходимые для проверки кода,
+    // например, email пользователя и введенный код подтверждения.
+    return this.authService.checkConfirmationCode(checkCodeDto, dto);
+  }
+
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post('register')

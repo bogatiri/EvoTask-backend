@@ -1,4 +1,4 @@
-import { Priority } from '@prisma/client'
+import { Priority, Prisma } from '@prisma/client'
 import { Transform, Type } from 'class-transformer'
 import {
 	IsArray,
@@ -27,7 +27,7 @@ export class CardDto {
 
 	@IsBoolean()
 	@IsOptional()
-	isCompleted?: boolean
+	completed?: boolean
 
 	@IsString()
 	@IsOptional()
@@ -36,6 +36,11 @@ export class CardDto {
 	@IsString()
 	@IsOptional()
 	description?: string
+}
+
+
+export class CardUpdate extends CardDto{
+	users: Prisma.UserUpdateManyWithoutCardsNestedInput
 }
 
 export class CardOrderDto {

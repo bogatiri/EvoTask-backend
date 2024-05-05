@@ -3,12 +3,45 @@ import { hash } from 'argon2'
 import { AuthDto } from 'src/auth/dto/auth.dto'
 import { PrismaService } from 'src/prisma.service'
 import { UserDto } from './user.dto'
-
+import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
 import { startOfDay, subDays } from 'date-fns'
 
 @Injectable()
 export class UserService {
-	constructor(private prisma: PrismaService) {}
+	private readonly uploadPath = 'uploads/avatars'
+
+	constructor(private prisma: PrismaService) {
+		const fullUploadPath = path.resolve(this.uploadPath);
+    if (!fs.existsSync(fullUploadPath)) {
+      fs.mkdirSync(fullUploadPath, { recursive: true });
+	}
+}
+
+async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
+	// Генерация уникального имени файла
+	// Вы можете использовать оригинальное имя файла или добавить дополнительные проверки
+	const fileExt = path.extname(file.originalname);
+	const fileName = uuidv4() + fileExt;
+	
+	// Полный путь к новому файлу
+	const filePath = path.join(this.uploadPath, fileName);
+
+	// Асинхронное перемещение файла в целевую директорию
+	fs.promises.rename(file.path, filePath);
+
+	// Обновление URL аватара в базе данных
+	const avatar = path.join('/static', this.uploadPath, fileName);
+	await this.prisma.user.update({
+		where: { id: userId },
+		data: { avatar }
+	});
+
+	// Вернуть URL, по которому будет доступен аватар
+	return avatar;
+}
+
 
 	getById(id: string) {
 		return this.prisma.user.findUnique({
@@ -16,7 +49,8 @@ export class UserService {
 				id
 			},
 			include: {
-				tasks: true
+				tasks: true,
+				boards: true
 			}
 		})
 	}

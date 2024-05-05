@@ -1,4 +1,5 @@
 import {
+	IsDate,
 	IsEmail,
 	IsNumber,
 	IsOptional,
@@ -7,6 +8,8 @@ import {
 	Min,
 	MinLength
 } from 'class-validator'
+
+
 
 export class PomodoroSettingsDto {
 	@IsOptional()
@@ -24,6 +27,10 @@ export class PomodoroSettingsDto {
 	@Min(1)
 	@Max(10)
 	intervalsCount?: number
+	
+	@IsOptional()
+	@IsString()
+	avatar?: string
 }
 
 export class UserDto extends PomodoroSettingsDto {
@@ -41,4 +48,10 @@ export class UserDto extends PomodoroSettingsDto {
 	})
 	@IsString()
 	password?: string
+
+	@IsString()
+	confirmationCode: string
+
+	@IsDate()
+	confirmationExpires: Date
 }

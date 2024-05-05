@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import * as cookieParser from 'cookie-parser'
+import * as express from 'express'
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule)
 
 	app.setGlobalPrefix('api')
+	app.use('/static/uploads', express.static('uploads'));
 	app.use(cookieParser())
 	app.enableCors({
 		origin: ['http://localhost:3000'],

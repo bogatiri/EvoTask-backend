@@ -9,12 +9,13 @@ export class ListDto {
 
 	@IsEnum(Type_list)
 	@IsOptional()
-	@Transform(({ value }) => ('' + value).toLowerCase())
+	@Transform(({ value }) => typeof value === 'string' ? value.toLowerCase() : value
+)
 	type?: Type_list
 
 	@IsNumber()
 	@IsOptional()
-	order: number
+	order?: number
 
 	@IsString()
 	@IsOptional()

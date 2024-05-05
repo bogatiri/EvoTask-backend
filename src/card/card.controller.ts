@@ -22,18 +22,14 @@ export class CardController {
 
 	@Get(':id')
 	@Auth()
-	async findByListId(
-		@Param('id') id: string
-	) {
-		return this.cardService.findByListId( id )
+	async findByListId(@Param('id') id: string) {
+		return this.cardService.findByListId(id)
 	}
 
 	@Get('card/:id')
 	@Auth()
-	async getById(
-		@Param('id') id: string
-	) {
-		return this.cardService.getById( id )
+	async getById(@Param('id') id: string) {
+		return this.cardService.getById(id)
 	}
 
 	@Get()
@@ -54,12 +50,30 @@ export class CardController {
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
+	@Post('copy')
+	@Auth()
+	async copyCard(@Body() body: any) {
+		const { cardId, listId} = body
+		return this.cardService.copyCard( cardId, listId)
+	}
+
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
 	@Put('update-order')
 	@Auth()
-	async updateOrder(@Body() cardOrderDto: CardOrderDto, ) {
-	
+	async updateOrder(@Body() cardOrderDto: CardOrderDto) {
 		return this.cardService.updateOrder(cardOrderDto.cards)
 	}
+
+	@HttpCode(200)
+  @Put(':id/users')
+  async addUserToCard(
+    @Param('id') boardId: string, 
+    @Body() body: any 
+  ){
+		const {email, cardId} = body
+    return this.cardService.addUserToCard(email, boardId, cardId);
+  }
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
@@ -67,11 +81,10 @@ export class CardController {
 	@Auth()
 	async update(
 		@Body() dto: CardDto,
-		@CurrentUser('id') userId: string,
+		// @CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
-
-		return this.cardService.update(dto, id, userId)
+		return this.cardService.update(dto, id)
 	}
 
 	@HttpCode(200)

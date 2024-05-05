@@ -12,12 +12,15 @@ model User{
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
+  confirmationCode   String?        @default(uuid()) @map("confirmation_code")
+  confirmationExpires DateTime?                      @map("confirmation_expires")
+
   role              Roles?
   email             String          @unique
   name              String?
   about             String?
   password          String
-
+  avatar            String?
   workInterval      Int?            @default(50)     @map("work_interval")
   breakInterval     Int?            @default(10)     @map("break_interval")
   intervalsCount    Int?            @default(7)      @map("intervals_count")
@@ -134,7 +137,9 @@ model List {
 
   name              String
   order             Int?
-  type              Type_list?
+  description       String?
+
+  type              Type_list? 
 
   creator           User            @relation(fields: [userId], references: [id])
   userId            String          @map("user_id")
@@ -165,7 +170,7 @@ model Card{
   list              List            @relation(fields: [listId], references: [id], onDelete: Cascade)
   listId            String          @map("list_id")
 
-  user              User[]          @relation("UserCards")
+  users             User[]          @relation("UserCards")
 
   creator           User            @relation(fields: [userId], references: [id])
   userId            String          @map("user_id")
