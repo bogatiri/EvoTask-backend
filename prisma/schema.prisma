@@ -125,7 +125,7 @@ model Board {
   lists             List[]          
   attachments       Attachment[]
   comments          Comment[]
-  chats             Chat[]  
+  chats              Chat[]  
 
   @@map("board")
 }

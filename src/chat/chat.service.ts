@@ -1,16 +1,51 @@
 import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { PrismaService } from 'src/prisma.service'
 import { ChatDto } from './chat.dto'
-import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class ChatService {
 	constructor(private prisma: PrismaService) {}
 
-	async getAll(userId: string) {
-		return this.prisma.chat.findMany({
+	async getorCreateChat(userId: string, boardId: string) {
+		let chat = await this.prisma.chat.findFirst({
 			where: {
-				userId
+				boardId: boardId
+			}
+		})
+
+		if (!chat) {
+			chat = await this.prisma.chat.create({
+				data: {
+					name: 'Chat for board',
+					board: {
+						connect: {
+							id: boardId
+						}
+					},
+					creator: {
+						connect: {
+							id: userId
+						}
+					}
+				}
+			})
+		}
+		return chat
+	}
+
+	async findById(id: string) {
+		return this.prisma.chat.findFirst({
+			where: {
+				id
+			},
+
+			include: {
+				messages:{
+					include: {
+						user: true
+					}
+				}
 			}
 		})
 	}

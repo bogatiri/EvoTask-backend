@@ -69,7 +69,7 @@ export class PomodoroService {
 		pomodoroId: string,
 		userId: string
 	) {
-		console.log(dto)
+
 		return this.prisma.pomodoroSession.update({
 			where: {
 				userId,

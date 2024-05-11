@@ -12,7 +12,6 @@ import { CardModule } from './card/card.module'
 import { CommentModule } from './comment/comment.module'
 import { ChatModule } from './chat/chat.module'
 import { MessageModule } from './message/message.module'
-import { SocketService } from './chat/chat.gateway'
 
 @Module({
 	imports: [
@@ -28,7 +27,6 @@ import { SocketService } from './chat/chat.gateway'
 		CommentModule,
 		ChatModule,
 		MessageModule,
-		SocketService
 	]
 })
 export class AppModule {}

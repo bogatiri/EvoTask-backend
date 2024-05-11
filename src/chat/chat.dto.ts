@@ -16,3 +16,12 @@ export class ChatDto {
 	@IsOptional()
 	boardId?: string
 }
+
+export class MessageDto{
+	@IsString()
+	text: string
+
+	@IsString()
+	senderId: string
+	
+}

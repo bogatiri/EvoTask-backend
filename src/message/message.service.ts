@@ -10,14 +10,17 @@ export class MessageService {
 		return this.prisma.message.findMany({
 			where: {
 				userId
+			},
+			include: {
+				user: true
 			}
 		})
 	}
 
-	async create(dto: MessageDto, userId: string, chatId: string) {
+	async create(text: string,  chatId: string, userId: string,) {
+		
 		return this.prisma.message.create({
 			data: {
-				...dto,
 				chat: {
 					connect: {
 						id: chatId
@@ -27,7 +30,11 @@ export class MessageService {
 					connect: {
 						id: userId
 					}
-				}
+				},
+				text
+			},
+			include: {
+				user: true
 			}
 		})
 	}

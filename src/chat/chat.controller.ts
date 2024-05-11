@@ -2,12 +2,13 @@
 import {
 	Body,
 	Controller,
-	Delete,
+	// Delete,
 	Get,
+	// Get,
 	HttpCode,
 	Param,
 	Post,
-	Put,
+	// Put,
 	UsePipes,
 	ValidationPipe
 } from '@nestjs/common'
@@ -20,10 +21,22 @@ import { ChatService } from './chat.service'
 export class ChatController {
 	constructor(private readonly chatService: ChatService) {}
 
-	@Get()
+	@Post('get-or-create')
 	@Auth()
-	async getAll(@CurrentUser('id') userId: string) {
-		return this.chatService.getAll(userId)
+	async getorCreateChat(
+		@CurrentUser('id') userId: string,
+		@Body() body: any,
+	) {
+		const {boardId} = body
+		return this.chatService.getorCreateChat(userId, boardId)
+	}
+
+	@Get(':id')
+	@Auth()
+	async findById(
+		@Param('id') id: string
+	) {
+		return this.chatService.findById( id )
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -34,22 +47,22 @@ export class ChatController {
 		return this.chatService.create(dto, userId)
 	}
 
-	@UsePipes(new ValidationPipe())
-	@HttpCode(200)
-	@Put(':id')
-	@Auth()
-	async update(
-		@Body() dto: ChatDto,
-		@CurrentUser('id') userId: string,
-		@Param('id') id: string
-	) {
-		return this.chatService.update(dto, id, userId)
-	}
+	// @UsePipes(new ValidationPipe())
+	// @HttpCode(200)
+	// @Put(':id')
+	// @Auth()
+	// async update(
+	// 	@Body() dto: ChatDto,
+	// 	@CurrentUser('id') userId: string,
+	// 	@Param('id') id: string
+	// ) {
+	// 	return this.chatService.update(dto, id, userId)
+	// }
 
-	@HttpCode(200)
-	@Delete(':id')
-	@Auth()
-	async delete(@Param('id') id: string) {
-		return this.chatService.delete(id)
-	}
+	// @HttpCode(200)
+	// @Delete(':id')
+	// @Auth()
+	// async delete(@Param('id') id: string) {
+	// 	return this.chatService.delete(id)
+	// }
 }

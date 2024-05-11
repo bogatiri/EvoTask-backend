@@ -44,8 +44,8 @@ export class CardController {
 	@Auth()
 	async create(@Body() body: any, @CurrentUser('id') userId: string) {
 		const { list, ...dto } = body
-		const listId = list.connect.id
-		return this.cardService.create(dto, userId, listId)
+		// const listId = list.connect.id
+		return this.cardService.create(dto, userId, list)
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -90,7 +90,7 @@ export class CardController {
 	@HttpCode(200)
 	@Delete(':id')
 	@Auth()
-	async delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
-		return this.cardService.delete(id, userId)
+	async delete(@Param('id') id: string) {
+		return this.cardService.delete(id, )
 	}
 }

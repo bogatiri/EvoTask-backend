@@ -13,7 +13,8 @@ export class BoardService {
 				id
 			},
 			include: {
-				users: true
+				users: true,
+				chats: true
 			}
 		})
 	}
@@ -49,7 +50,7 @@ export class BoardService {
 					data: {
 						boards: {
 							connect: [{ id: boardId }] // Связываем доску с пользователем
-						}
+						},
 					}
 				})
 			])
@@ -71,6 +72,9 @@ export class BoardService {
 						}
 					}
 				]
+			},
+			include: {
+				chats: true
 			}
 		})
 	}
@@ -83,7 +87,25 @@ export class BoardService {
 					connect: {
 						id: userId
 					}
+				},
+				users: {
+					connect: {
+						id: userId
+					}
+				},
+				chats: {
+					create: {
+						name:'board',
+						creator: {
+							connect: {
+								id: userId
+							}
+						}
+					}
 				}
+			},
+			include: {
+				chats: true
 			}
 		})
 	}

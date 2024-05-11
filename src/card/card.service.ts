@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
 import { CardDto, CardOrderUpdateDto, CardUpdate } from './card.dto'
 
@@ -27,7 +27,7 @@ export class CardService {
 		})
 
 		if (!user) {
-			throw new Error(`User with email ${email} not found`)
+			throw new HttpException(`User with email ${email} not found`, HttpStatus.NOT_FOUND)
 		}
 
 		const operations = []
@@ -102,9 +102,9 @@ export class CardService {
 		})
 	}
 
-	async create(dto: CardDto, userId: string, listId: string) {
+	async create(dto: CardDto, userId: string, list: string) {
 		const currentMaxOrder = await this.prisma.card.count({
-			where: { listId: listId }
+			where: { listId: list }
 		})
 
 		return this.prisma.card.create({
@@ -112,10 +112,15 @@ export class CardService {
 				...dto,
 				list: {
 					connect: {
-						id: listId
+						id: list
 					}
 				},
 				creator: {
+					connect: {
+						id: userId
+					}
+				},
+				users: {
 					connect: {
 						id: userId
 					}
@@ -205,15 +210,15 @@ export class CardService {
 		})
 	}
 
-	async delete(cardId: string, userId: string) {
+	async delete(cardId: string) {
 		return this.prisma.card.delete({
 			where: {
 				id: cardId,
-				list: {
-					board: {
-						userId
-					}
-				}
+				// list: {
+				// 	board: {
+				// 		userId
+				// 	}
+				// }
 			}
 		})
 	}

@@ -40,9 +40,8 @@ export class ListController {
 	@Auth()
 	async create(@Body() body: any, @CurrentUser('id') userId: string) {
 		const { board, ...dto } = body
-		const boardId = board.connect.id
 
-		return this.listService.create(dto, boardId, userId)
+		return this.listService.create(dto, board, userId)
 	}
 
 	@UsePipes(new ValidationPipe())

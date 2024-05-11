@@ -17,6 +17,9 @@ export class ListService {
 			},
 			include: {
 				cards: {
+					orderBy: {
+						order: ('asc')
+					},
 					include: {
 						users: true
 					}
@@ -36,16 +39,16 @@ export class ListService {
 		})
 	}
 
-	async create(dto: ListDto, boardId: string, userId: string) {
+	async create(dto: ListDto, board: string, userId: string) {
 		const currentMaxOrder = await this.prisma.list.count({
-			where: { boardId },
+			where: { boardId: board },
 		});
 		return this.prisma.list.create({
 			data: {
 				...dto,
 				board: {
 					connect: {
-						id: boardId
+						id: board
 					}
 				},
 				creator: {
@@ -79,7 +82,6 @@ export class ListService {
 				throw new Error('List to copy not found');
 			}
 	
-			// Шаг 2: Увеличиваем order всех последующих карточек
 			await prisma.list.updateMany({
 				where: {
 					boardId: boardId,
