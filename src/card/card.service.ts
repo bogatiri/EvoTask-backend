@@ -102,31 +102,37 @@ export class CardService {
 		})
 	}
 
-	async create(dto: CardDto, userId: string, list: string) {
+	async create(dto: CardDto, userId: string, list: string, sprintId? :string) {
 		const currentMaxOrder = await this.prisma.card.count({
 			where: { listId: list }
 		})
 
-		return this.prisma.card.create({
-			data: {
-				...dto,
-				list: {
-					connect: {
-						id: list
-					}
-				},
-				creator: {
-					connect: {
-						id: userId
-					}
-				},
-				users: {
-					connect: {
-						id: userId
-					}
-				},
-				order: currentMaxOrder + 1,
+		const data: any =  {
+			...dto,
+			list: {
+				connect: {
+					id: list
+				}
 			},
+			creator: {
+				connect: {
+					id: userId
+				}
+			},
+			users: {
+				connect: {
+					id: userId
+				}
+			},
+			order: currentMaxOrder + 1,
+		}
+
+		if (sprintId){
+			data.sprint = {connect: {id: sprintId}}
+		}
+
+		return this.prisma.card.create({
+			data: data, 
 			include: {
 				users: true
 			}

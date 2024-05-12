@@ -26,6 +26,14 @@ import { UserService } from './user.service'
 export class UserController {
 	constructor(private readonly userService: UserService) {}
 
+	@Get(':id')
+	@Auth()
+	async findById(
+		@Param('id') id: string
+	) {
+		return this.userService.findById( id )
+	}
+
 	@Get()
 	@Auth()
 	async profile(@CurrentUser('id') id: string) {

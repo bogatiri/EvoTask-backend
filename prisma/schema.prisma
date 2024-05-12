@@ -18,13 +18,18 @@ model User{
   role              Roles?
   email             String          @unique
   name              String?
+  lastName          String?
+  organization      String?
+  post              String?
   about             String?
   password          String
+  phone             String?
   avatar            String?
   workInterval      Int?            @default(50)     @map("work_interval")
   breakInterval     Int?            @default(10)     @map("break_interval")
   intervalsCount    Int?            @default(7)      @map("intervals_count")
 
+  sprints           Sprint[]
   tasks             Task[]
   cards             Card[]          @relation("UserCards")
   card              Card[]
@@ -144,8 +149,11 @@ model List {
   creator           User            @relation(fields: [userId], references: [id])
   userId            String          @map("user_id")
 
-  board             Board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId           String          @map("board_id")
+  board             Board?           @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId           String?          @map("board_id")
+
+  sprint             Sprint?           @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprintId           String?          @map("sprint_id")
   
   users             User[]          @relation("UserLists")
 
@@ -163,6 +171,7 @@ model Card{
 
   name              String
   priority          Priority?
+  points            String?
   order             Int?
   completed         Boolean?
   description       String?         @db.Text
@@ -191,15 +200,19 @@ model Sprint{
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
-  name              String
-  goal              String
-  startDate         DateTime        @map("start_date")
-  endDate           DateTime        @map("end_date")
-  status            Status
+  name              String?
+  goal              String?
+  startDate         DateTime?        @map("start_date")
+  endDate           DateTime?        @map("end_date")
+  status            Status?
+
+  creator           User            @relation(fields: [userId], references: [id])
+  userId            String          @map("user_id")
 
   board             Board           @relation(fields: [boardId], references: [id])
   boardId           String          @map("board_id")
 
+  list              List[]
   cards             Card[]
 
   @@map("sprint")
@@ -212,13 +225,13 @@ model Chat {
 
   name              String 
   
-  board             Board?           @relation(fields: [boardId], references: [id])
+  board             Board?           @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId           String?          @map("board_id")
 
-  list              List?            @relation(fields: [listId], references: [id])
+  list              List?            @relation(fields: [listId], references: [id], onDelete: Cascade)
   listId            String?          @map("list_id")
 
-  card              Card?            @relation(fields:[cardId], references: [id])
+  card              Card?            @relation(fields:[cardId], references: [id], onDelete: Cascade)
   cardId            String?          @map("card_id")
 
   user              User[]           @relation("UserChats")
@@ -238,7 +251,7 @@ model Message {
 
   text              String
 
-  user              User            @relation(fields: [userId], references: [id])
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
   chat              Chat           @relation(fields: [chatId], references: [id])

@@ -36,6 +36,10 @@ export class CardDto {
 	@IsString()
 	@IsOptional()
 	description?: string
+
+	@IsString()
+	@IsOptional()
+	points?: string
 }
 
 

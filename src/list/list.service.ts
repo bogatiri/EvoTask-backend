@@ -10,7 +10,8 @@ export class ListService {
 	async findByBoardId(id: string){
 		return this.prisma.list.findMany({
 			where: {
-				boardId: id
+				boardId: id,
+				sprintId: null
 			},
 			orderBy: {
 				order: ('asc')
@@ -39,25 +40,31 @@ export class ListService {
 		})
 	}
 
-	async create(dto: ListDto, board: string, userId: string) {
+	async create(dto: ListDto, board: string, userId: string,  sprintId?: string) {
 		const currentMaxOrder = await this.prisma.list.count({
 			where: { boardId: board },
 		});
-		return this.prisma.list.create({
-			data: {
-				...dto,
-				board: {
-					connect: {
-						id: board
-					}
-				},
-				creator: {
-					connect: {
-						id: userId
-					}
-				},
-				order: currentMaxOrder + 1
+		const data: any = {
+			...dto,
+			board: {
+				connect: {
+					id: board
+				}
 			},
+			creator: {
+				connect: {
+					id: userId
+				}
+			},
+			order: currentMaxOrder + 1
+		}
+
+		if(sprintId) {
+			data.sprint = {connect: {id: sprintId}}
+		}
+
+		return this.prisma.list.create({
+			data: data, 
 			include: {
 				cards: true
 			}
@@ -92,7 +99,6 @@ export class ListService {
 				},
 			});
 	
-			// Шаг 3: Создаем копию карточки с order, увеличенным на 1
 			const newList = await prisma.list.create({
 				data: {
 					board: {

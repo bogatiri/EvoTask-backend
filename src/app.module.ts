@@ -12,6 +12,7 @@ import { CardModule } from './card/card.module'
 import { CommentModule } from './comment/comment.module'
 import { ChatModule } from './chat/chat.module'
 import { MessageModule } from './message/message.module'
+import { SprintModule } from './sprint/sprint.module'
 
 @Module({
 	imports: [
@@ -27,6 +28,7 @@ import { MessageModule } from './message/message.module'
 		CommentModule,
 		ChatModule,
 		MessageModule,
+		SprintModule,
 	]
 })
 export class AppModule {}

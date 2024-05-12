@@ -19,6 +19,15 @@ export class UserService {
 	}
 }
 
+
+async findById(id: string) {
+	return this.prisma.user.findUnique({
+		where: {
+			id
+		}
+	})
+}
+
 async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
 	// Генерация уникального имени файла
 	// Вы можете использовать оригинальное имя файла или добавить дополнительные проверки
@@ -132,11 +141,7 @@ async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
 			where: {
 				id
 			},
-			data,
-			select: {
-				name: true,
-				email: true
-			}
+			data
 		})
 	}
 }

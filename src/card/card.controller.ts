@@ -43,9 +43,8 @@ export class CardController {
 	@Post()
 	@Auth()
 	async create(@Body() body: any, @CurrentUser('id') userId: string) {
-		const { list, ...dto } = body
-		// const listId = list.connect.id
-		return this.cardService.create(dto, userId, list)
+		const { list,sprintId, ...dto } = body
+		return this.cardService.create(dto, userId, list, sprintId)
 	}
 
 	@UsePipes(new ValidationPipe())
