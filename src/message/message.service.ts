@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
-import { MessageDto } from './message.dto'
 
 @Injectable()
 export class MessageService {
@@ -13,6 +12,9 @@ export class MessageService {
 			},
 			include: {
 				user: true
+			},
+			orderBy: {
+				createdAt:'asc'
 			}
 		})
 	}
@@ -39,22 +41,40 @@ export class MessageService {
 		})
 	}
 
-	async update(dto: Partial<MessageDto>, messageId: string, userId: string) {
+	async update(textUpdatedMessage: string, id: string, userId: string) {
 		return this.prisma.message.update({
 			where: {
 				userId,
-				id: messageId
+				id
 			},
-			data: dto
+			data: {
+				text: textUpdatedMessage
+			},
+			include: {
+				user: true
+			}
 		})
 	}
 
-	async delete(messageId: string, userId: string) {
+	async delete(id: string, userId: string) {
+		// Найти сначала сообщение, чтобы убедиться, что оно принадлежит пользователю
+		const message = await this.prisma.message.findFirst({
+			where: {
+				id,
+				userId: userId,
+			},
+		});
+	
+		// Если сообщение не найдено или не принадлежит пользователю, выбросить исключение
+		if (!message) {
+			throw new Error('Message not found or you do not have permissions to delete this message.');
+		}
+	
+		// Если сообщение принадлежит пользователю, тогда удаляем его
 		return this.prisma.message.delete({
 			where: {
-				id: messageId,
-				userId
-			}
-		})
+				id,
+			},
+		});
 	}
 }

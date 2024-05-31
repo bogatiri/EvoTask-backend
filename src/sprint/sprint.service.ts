@@ -25,16 +25,24 @@ export class SprintService {
 			},
 			include: {
 				list: {
+					orderBy: {
+						order: 'asc'
+					},
 					include: {
 						cards: {
 							include: {
-								users: true
+								users: true,
+								comments: {
+									include: {
+										user: true
+									}
+								}
 							}
 						}
 					}
 				}
 			}
-		})
+		});
 	}
 
 	async create(dto: SprintDto, userId, boardId) {

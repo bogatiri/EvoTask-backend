@@ -36,9 +36,7 @@ export class AuthController {
   async checkConfirmationCode(
 		@Body() body: any,
 	) {
-		const {checkCodeDto, dto} = body
-    // В CheckCodeDto должны быть определены все поля, необходимые для проверки кода,
-    // например, email пользователя и введенный код подтверждения.
+		const {checkCodeDto, dto} = body 
     return this.authService.checkConfirmationCode(checkCodeDto, dto);
   }
 

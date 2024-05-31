@@ -22,7 +22,13 @@ export class ListService {
 						order: ('asc')
 					},
 					include: {
-						users: true
+						users: true,
+						creator: true,
+						comments: {
+							include: {
+								user: true
+							}
+						}
 					}
 				}
 			}
@@ -171,11 +177,11 @@ export class ListService {
 		})
 	}
 	
-	async update(dto: Partial<ListDto>, listId: string, userId: string) {
+	async update(dto: Partial<ListDto>, id: string, userId: string) {
 		return this.prisma.list.update({
 			where: {
 				userId,
-				id: listId
+				id
 			},
 			data: dto
 		})

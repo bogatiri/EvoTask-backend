@@ -33,7 +33,7 @@ export class CommentService {
 			createData.board = { connect: { id: boardId } }
 		}
 
-		return this.prisma.comment.create({ data: createData })
+		return this.prisma.comment.create({ data: createData, include: {user: true} })
 	}
 
 	async update(dto: Partial<CommentDto>, commentId: string, userId: string) {

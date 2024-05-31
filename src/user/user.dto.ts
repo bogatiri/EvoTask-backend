@@ -31,6 +31,10 @@ export class PomodoroSettingsDto {
 	@IsOptional()
 	@IsString()
 	avatar?: string
+
+	@IsOptional()
+	@IsString()
+	sidebarWidth?: string
 }
 
 export class UserDto extends PomodoroSettingsDto {

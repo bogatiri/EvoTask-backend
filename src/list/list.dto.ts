@@ -24,6 +24,10 @@ export class ListDto {
 	@IsString()
 	@IsOptional()
 	description?: string
+
+	@IsString()
+	@IsOptional()
+	sprintId?: string
 }
 
 export class ListOrderDto {

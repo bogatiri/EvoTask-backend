@@ -58,6 +58,15 @@ export class CardController {
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
+	@Post('pick')
+	@Auth()
+	async pickCard(@Body() body: any,  @CurrentUser('id') userId: string) {
+		const { cardId} = body
+		return this.cardService.pickCard( cardId, userId)
+	}
+
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
 	@Put('update-order')
 	@Auth()
 	async updateOrder(@Body() cardOrderDto: CardOrderDto) {

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { Injectable } from '@nestjs/common'
+import { Name_Roles } from '@prisma/client'
 import { PrismaService } from 'src/prisma.service'
 import { BoardDto } from './board.dto'
 
@@ -13,8 +14,28 @@ export class BoardService {
 				id
 			},
 			include: {
-				users: true,
-				chats: true
+				users: {
+					include: {
+						roles: true
+					}
+				},
+				roles: {
+					include: {
+						users: true
+					}
+				},
+				chats: {
+					include: {
+						messages: {
+							include: {
+								user: true
+							},
+							orderBy: {
+								createdAt: 'asc'
+							}
+						}
+					}
+				}
 			}
 		})
 	}
@@ -32,7 +53,7 @@ export class BoardService {
 		}
 
 		const boardExist = user.boards.some(board => board.id === boardId)
-		if(boardExist) {
+		if (boardExist) {
 			throw new Error(`User already on board`)
 		}
 		if (!boardExist) {
@@ -50,7 +71,7 @@ export class BoardService {
 					data: {
 						boards: {
 							connect: [{ id: boardId }] // Связываем доску с пользователем
-						},
+						}
 					}
 				})
 			])
@@ -80,33 +101,62 @@ export class BoardService {
 	}
 
 	async create(dto: BoardDto, userId: string) {
-		return this.prisma.board.create({
-			data: {
-				...dto,
-				creator: {
-					connect: {
-						id: userId
-					}
-				},
-				users: {
-					connect: {
-						id: userId
-					}
-				},
-				chats: {
-					create: {
-						name:'board',
-						creator: {
-							connect: {
-								id: userId
+		return await this.prisma.$transaction(async prisma => {
+			const board = await this.prisma.board.create({
+				data: {
+					...dto,
+					creator: {
+						connect: {
+							id: userId
+						}
+					},
+					users: {
+						connect: {
+							id: userId
+						}
+					},
+					chats: {
+						create: {
+							name: 'board',
+							creator: {
+								connect: {
+									id: userId
+								}
 							}
 						}
 					}
+				},
+				include: {
+					chats: true
 				}
-			},
-			include: {
-				chats: true
-			}
+			})
+
+			const name_roles = ['scrum_master', 'project_owner', 'team_member']
+
+			const roles = await Promise.all(
+				name_roles.map(name =>
+					prisma.roles.create({
+						data: {
+							name: name as Name_Roles,
+							board: {
+								connect: {
+									id: board.id
+								}
+							},
+							creator: {
+								connect: {
+									id: userId
+								}
+							}
+						},
+						include: {
+							users: true
+						}
+					})
+				)
+			)
+
+			return { board, roles }
 		})
 	}
 

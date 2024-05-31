@@ -24,6 +24,10 @@ async findById(id: string) {
 	return this.prisma.user.findUnique({
 		where: {
 			id
+		},
+		include: {
+			roles: true,
+			cards: true
 		}
 	})
 }
@@ -59,7 +63,8 @@ async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
 			},
 			include: {
 				tasks: true,
-				boards: true
+				boards: true,
+				roles: true
 			}
 		})
 	}

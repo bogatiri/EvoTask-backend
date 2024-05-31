@@ -8,14 +8,13 @@ datasource db {
 }
 
 model User{
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
-  confirmationCode   String?        @default(uuid()) @map("confirmation_code")
+  confirmationCode  String?         @default(uuid()) @map("confirmation_code")
   confirmationExpires DateTime?                      @map("confirmation_expires")
 
-  role              Roles?
   email             String          @unique
   name              String?
   lastName          String?
@@ -28,9 +27,13 @@ model User{
   workInterval      Int?            @default(50)     @map("work_interval")
   breakInterval     Int?            @default(10)     @map("break_interval")
   intervalsCount    Int?            @default(7)      @map("intervals_count")
+  sidebarWidth      String?         @default("15")     @map("sidebar_width")
+
 
   sprints           Sprint[]
   tasks             Task[]
+  roles             Roles[]         @relation("UserRoles")
+  role              Roles[]
   cards             Card[]          @relation("UserCards")
   card              Card[]
   boards            Board[]         @relation("UserBoards")
@@ -48,7 +51,7 @@ model User{
   @@map("user")
 }
 model Task {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -63,7 +66,7 @@ model Task {
 }
 
 model TimeBlock{
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -79,13 +82,13 @@ model TimeBlock{
 }
 
 model PomodoroSession{
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
   isCompleted       Boolean?        @default(false) @map("is_completed")
 
-  user              User            @relation(fields: [userId], references: [id])
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
   rounds            PomodoroRound[]
@@ -95,12 +98,12 @@ model PomodoroSession{
 }
 
 model PomodoroRound{
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
   totalSeconds      Int             @map("total_seconds")
-  isCompleted       Boolean?        @default(false) @map("is_completed")
+  isCompleted       Boolean?        @default(false)  @map("is_completed")
 
   session           PomodoroSession @relation(fields: [pomodoroSessionId], references: [id], onDelete: Cascade)
   pomodoroSessionId String          @map("user_id")
@@ -109,12 +112,13 @@ model PomodoroRound{
 }
 
 model Board {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
   name              String
   description       String?         @db.Text
+  status            Status?
 
   imageId           String?
   imageThumbUrl     String?         @db.Text
@@ -125,18 +129,19 @@ model Board {
   creator           User            @relation(fields: [userId], references: [id])
   userId            String          @map("user_id")
 
+  roles             Roles[]
   users             User[]          @relation("UserBoards")
   sprints           Sprint[]
   lists             List[]          
   attachments       Attachment[]
   comments          Comment[]
-  chats              Chat[]  
+  chats             Chat[]  
 
   @@map("board")
 }
 
 model List {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -146,14 +151,14 @@ model List {
 
   type              Type_list? 
 
-  creator           User            @relation(fields: [userId], references: [id])
+  creator           User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
-  board             Board?           @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId           String?          @map("board_id")
+  board             Board?          @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId           String?         @map("board_id")
 
-  sprint             Sprint?           @relation(fields: [sprintId], references: [id], onDelete: Cascade)
-  sprintId           String?          @map("sprint_id")
+  sprint            Sprint?         @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprintId          String?         @map("sprint_id")
   
   users             User[]          @relation("UserLists")
 
@@ -165,7 +170,7 @@ model List {
 }
 
 model Card{
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -181,11 +186,11 @@ model Card{
 
   users             User[]          @relation("UserCards")
 
-  creator           User            @relation(fields: [userId], references: [id])
+  creator           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
-  sprint            Sprint?          @relation(fields: [sprintId], references: [id])
-  sprintId          String?          @map("sprint_id")
+  sprint            Sprint?         @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprintId          String?         @map("sprint_id")
 
   attachments       Attachment[]
   comments          Comment[]
@@ -196,20 +201,20 @@ model Card{
 }
 
 model Sprint{
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
   name              String?
   goal              String?
-  startDate         DateTime?        @map("start_date")
-  endDate           DateTime?        @map("end_date")
+  startDate         DateTime?       @map("start_date")
+  endDate           DateTime?       @map("end_date")
   status            Status?
 
-  creator           User            @relation(fields: [userId], references: [id])
+  creator           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
-  board             Board           @relation(fields: [boardId], references: [id])
+  board             Board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId           String          @map("board_id")
 
   list              List[]
@@ -219,7 +224,7 @@ model Sprint{
 }
 
 model Chat {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -245,7 +250,7 @@ model Chat {
 }
 
 model Message {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -254,8 +259,8 @@ model Message {
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
-  chat              Chat           @relation(fields: [chatId], references: [id])
-  chatId            String         @map("chat_id")
+  chat              Chat            @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId            String          @map("chat_id")
 
   attachments       Attachment[]
 
@@ -263,7 +268,7 @@ model Message {
 }
 
 model Attachment {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -272,20 +277,36 @@ model Attachment {
   user              User            @relation(fields: [userId], references: [id])
   userId            String          @map("user_id")
 
-  board             Board?           @relation(fields: [boardId], references: [id])
-  boardId           String?          @map("board_id")
+  board             Board?          @relation(fields: [boardId], references: [id])
+  boardId           String?         @map("board_id")
 
-  card              Card?            @relation(fields:[cardId], references: [id])
-  cardId            String?          @map("card_id")
+  card              Card?           @relation(fields:[cardId], references: [id])
+  cardId            String?         @map("card_id")
 
-  messages          Message?         @relation(fields: [messageId], references: [id])
-  messageId         String?          @map("message_id")
+  messages          Message?        @relation(fields: [messageId], references: [id])
+  messageId         String?         @map("message_id")
   
   @@map("attachment")
 }
 
+model Roles {
+  id                String          @id              @default(uuid())
+  createdAt         DateTime        @default(now())  @map("created_at")
+  updatedAt         DateTime        @updatedAt       @map("updated_at")
+
+  name              Name_Roles?
+
+  users             User[]          @relation("UserRoles")
+
+  creator              User?           @relation(fields: [userId], references: [id])
+  userId            String?         @map("user_id")
+
+  board             Board?          @relation(fields: [boardId], references: [id],  onDelete: Cascade)
+  boardId           String?         @map("board_id")
+}
+
 model Comment {
-  id                String          @id @default(uuid())
+  id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
   updatedAt         DateTime        @updatedAt       @map("updated_at")
 
@@ -294,8 +315,8 @@ model Comment {
   user              User            @relation(fields: [userId], references: [id])
   userId            String          @map("user_id")
 
-  card              Card?            @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  cardId            String?          @map("card_id")
+  card              Card?           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId            String?         @map("card_id")
   
   board             Board?          @relation(fields: [boardId], references: [id],  onDelete: Cascade)
   boardId           String?         @map("board_id")
@@ -312,17 +333,10 @@ enum Priority{
   high
 }
 
-enum Roles{
+enum Name_Roles{
   scrum_master
-  project_Owner
-  administrator
-  project_manager
+  project_owner
   team_member
-  developer
-  analyst
-  qa_tester
-  stakeholder
-  auditor
 }
 
 enum Type_list{

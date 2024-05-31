@@ -27,27 +27,30 @@ export class CardService {
 		})
 
 		if (!user) {
-			throw new HttpException(`User with email ${email} not found`, HttpStatus.NOT_FOUND)
+			throw new HttpException(
+				`User with email ${email} not found`,
+				HttpStatus.NOT_FOUND
+			)
 		}
 
 		const operations = []
 		const boardExist = user.boards.some(board => board.id === boardId)
 		const cardExist = user.cards.some(card => card.id === cardId)
 
-		if (cardExist){
+		if (cardExist) {
 			throw new Error(`User already has this card`)
 		}
 
 		if (!boardExist) {
 			operations.push(
-					this.prisma.board.update({
-						where: { id: boardId },
-						data: {
-							users: {
-								connect: [{ id: user.id }]
-							}
+				this.prisma.board.update({
+					where: { id: boardId },
+					data: {
+						users: {
+							connect: [{ id: user.id }]
 						}
-					})
+					}
+				})
 			)
 		}
 
@@ -86,7 +89,8 @@ export class CardService {
 				id
 			},
 			include: {
-				users: true
+				users: true,
+				comments: true
 			}
 		})
 	}
@@ -102,12 +106,12 @@ export class CardService {
 		})
 	}
 
-	async create(dto: CardDto, userId: string, list: string, sprintId? :string) {
+	async create(dto: CardDto, userId: string, list: string, sprintId?: string) {
 		const currentMaxOrder = await this.prisma.card.count({
 			where: { listId: list }
 		})
 
-		const data: any =  {
+		const data: any = {
 			...dto,
 			list: {
 				connect: {
@@ -119,23 +123,59 @@ export class CardService {
 					id: userId
 				}
 			},
-			users: {
-				connect: {
-					id: userId
-				}
-			},
-			order: currentMaxOrder + 1,
+			// users: {
+			// 	connect: {
+			// 		id: userId
+			// 	}
+			// },
+			order: currentMaxOrder + 1
 		}
 
-		if (sprintId){
-			data.sprint = {connect: {id: sprintId}}
+		if (sprintId) {
+			data.sprint = { connect: { id: sprintId } }
 		}
 
 		return this.prisma.card.create({
-			data: data, 
+			data: data,
 			include: {
 				users: true
 			}
+		})
+	}
+
+	async pickCard(cardId: string, userId: string) {
+		return await this.prisma.$transaction(async prisma => {
+			const cardToPick = await this.prisma.card.findUnique({
+				where: {
+					id: cardId
+				}
+			})
+
+			const newCard = await prisma.card.update({
+				where: {
+					id: cardId
+				},
+				data: {
+					users: {
+						connect: {
+							id: userId
+						}
+					}
+				}
+			})
+
+			await prisma.user.update({
+				where: {
+					id: userId
+				},
+				data: {
+					cards: {
+						connect: [cardToPick] 
+					}
+				}
+			})
+			return newCard
+
 		})
 	}
 
@@ -171,7 +211,7 @@ export class CardService {
 					name: `${cardToCopy.name} - copy`,
 					order: cardToCopy.order + 1,
 					users: {
-						connect: cardToCopy.users.map(user=> ({
+						connect: cardToCopy.users.map(user => ({
 							id: user.id
 						}))
 					},
@@ -219,7 +259,7 @@ export class CardService {
 	async delete(cardId: string) {
 		return this.prisma.card.delete({
 			where: {
-				id: cardId,
+				id: cardId
 				// list: {
 				// 	board: {
 				// 		userId

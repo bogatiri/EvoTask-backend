@@ -78,4 +78,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client.emit('message-error', { error: 'Не удалось сохранить сообщение' })
 		}
 	}
+
+	@SubscribeMessage('delete-message')
+	async handleDeleteMessage(
+		@MessageBody() body: {  id: string },
+		@ConnectedSocket() client: Socket
+	): Promise<void> {
+		const userId = this.clients.get(client.id)
+		const { id } = body
+
+		if (!userId) {
+			return
+		}
+
+		try {
+			const message = await this.messageService.delete(id, userId)
+			this.server.to(message.chatId).emit('delete-message', message)
+		} catch (error) {
+			console.error(error)
+			client.emit('message-error', { error: 'Не удалось удалить сообщение' })
+		}
+	}
+
+	@SubscribeMessage('update-message')
+	async handleUpdateMessage(
+		@MessageBody() body: any,
+		@ConnectedSocket() client: Socket
+	): Promise<void> {
+		const userId = this.clients.get(client.id)
+		const {id, textUpdatedMessage} = body
+		if (!userId) {
+			return
+		}
+
+		try {
+			const message = await this.messageService.update(textUpdatedMessage, id, userId)
+			this.server.to(message.chatId).emit('update-message', message)
+		} catch (error) {
+			console.error(error)
+			client.emit('message-error', { error: 'Не удалось обновить сообщение' })
+		}
+	}
+
 }

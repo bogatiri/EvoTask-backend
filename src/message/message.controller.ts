@@ -13,7 +13,6 @@ import {
 } from '@nestjs/common'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CurrentUser } from 'src/auth/decorators/user.decorator'
-import { MessageDto } from './message.dto'
 import { MessageService } from './message.service'
 
 @Controller('user/messages')
@@ -41,11 +40,12 @@ export class MessageController {
 	@Put(':id')
 	@Auth()
 	async update(
-		@Body() dto: MessageDto,
+		@Body() body: any,
 		@CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
-		return this.messageService.update(dto, id, userId)
+		const { text} = body
+		return this.messageService.update(text, id, userId)
 	}
 
 	@HttpCode(200)
