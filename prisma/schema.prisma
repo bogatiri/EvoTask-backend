@@ -27,21 +27,18 @@ model User{
   workInterval      Int?            @default(50)     @map("work_interval")
   breakInterval     Int?            @default(10)     @map("break_interval")
   intervalsCount    Int?            @default(7)      @map("intervals_count")
-  sidebarWidth      String?         @default("15")     @map("sidebar_width")
+  sidebarWidth      String?         @default("20")     @map("sidebar_width")
 
 
   sprints           Sprint[]
   tasks             Task[]
   roles             Roles[]         @relation("UserRoles")
-  role              Roles[]
   cards             Card[]          @relation("UserCards")
   card              Card[]
   boards            Board[]         @relation("UserBoards")
   board             Board[]
-  lists             List[]          @relation("UserLists")
-  list              List[]
+
   chats             Chat[]          @relation("UserChats")
-  chat              Chat[]
   messages          Message[]
   attachments       Attachment[]
   comments          Comment[]
@@ -151,16 +148,12 @@ model List {
 
   type              Type_list? 
 
-  creator           User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String          @map("user_id")
-
   board             Board?          @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId           String?         @map("board_id")
 
   sprint            Sprint?         @relation(fields: [sprintId], references: [id], onDelete: Cascade)
   sprintId          String?         @map("sprint_id")
   
-  users             User[]          @relation("UserLists")
 
   cards             Card[]
   comments          Comment[]
@@ -178,19 +171,23 @@ model Card{
   priority          Priority?
   points            String?
   order             Int?
-  completed         Boolean?
+  completed         Boolean?        @default(false)
   description       String?         @db.Text
 
-  list              List            @relation(fields: [listId], references: [id], onDelete: Cascade)
-  listId            String          @map("list_id")
+  parentId          String?         @map("parent_id")
+  subtasks          Card[]          @relation("CardToCard")
+  isSubtaskVisible  Boolean?        @default(false)
+  parent            Card?           @relation("CardToCard", fields: [parentId], references: [id], onDelete: Cascade)
+
+  list              List?            @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId            String?          @map("list_id")
 
   users             User[]          @relation("UserCards")
 
   creator           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
-  sprint            Sprint?         @relation(fields: [sprintId], references: [id], onDelete: Cascade)
-  sprintId          String?         @map("sprint_id")
+
 
   attachments       Attachment[]
   comments          Comment[]
@@ -218,7 +215,6 @@ model Sprint{
   boardId           String          @map("board_id")
 
   list              List[]
-  cards             Card[]
 
   @@map("sprint")
 }
@@ -240,9 +236,6 @@ model Chat {
   cardId            String?          @map("card_id")
 
   user              User[]           @relation("UserChats")
-
-  creator           User             @relation(fields: [userId], references: [id])
-  userId            String           @map("user_id")
 
   messages          Message[]       
   
@@ -298,9 +291,6 @@ model Roles {
 
   users             User[]          @relation("UserRoles")
 
-  creator              User?           @relation(fields: [userId], references: [id])
-  userId            String?         @map("user_id")
-
   board             Board?          @relation(fields: [boardId], references: [id],  onDelete: Cascade)
   boardId           String?         @map("board_id")
 }
@@ -344,6 +334,8 @@ enum Type_list{
   to_do
   in_progress
   done
+  blocked
+  feedback
 }
 
 enum Status{

@@ -1,7 +1,8 @@
+/* eslint-disable no-console */
 import { Injectable } from '@nestjs/common'
+import { Type_list } from '@prisma/client'
 import { PrismaService } from 'src/prisma.service'
 import { SprintDto } from './sprint.dto'
-import { Type_list } from '@prisma/client'
 
 @Injectable()
 export class SprintService {
@@ -13,7 +14,7 @@ export class SprintService {
 				boardId: id
 			},
 			orderBy: {
-				createdAt:'asc'
+				createdAt: 'asc'
 			}
 		})
 	}
@@ -30,8 +31,23 @@ export class SprintService {
 					},
 					include: {
 						cards: {
+							orderBy: {
+								order: 'asc'
+							},
 							include: {
 								users: true,
+								creator: true,
+								subtasks: {
+									include: {
+										users: true,
+										creator: true,
+										comments: {
+											include: {
+												user: true
+											}
+										}
+									}
+								},
 								comments: {
 									include: {
 										user: true
@@ -42,11 +58,11 @@ export class SprintService {
 					}
 				}
 			}
-		});
+		})
 	}
 
-	async create(dto: SprintDto, userId, boardId) {
-		return await this.prisma.$transaction(async (prisma) => {
+	async create(dto: SprintDto, userId: string, boardId: string) {
+		return await this.prisma.$transaction(async prisma => {
 			const sprint = await prisma.sprint.create({
 				data: {
 					...dto,
@@ -59,24 +75,19 @@ export class SprintService {
 						connect: {
 							id: userId
 						}
-					},
-				},
-			});
-	
-			const listTypes = ['to_do', 'in_progress', 'done'];
-	
+					}
+				}
+			})
+
+			const listTypes = ['to_do', 'in_progress', 'done', 'blocked', 'feedback']
+
 			const lists = await Promise.all(
-				listTypes.map((type, index) => 
+				listTypes.map((type, index) =>
 					prisma.list.create({
 						data: {
 							name: 'qwe',
 							type: type as Type_list,
 							order: index + 1,
-							creator: {
-								connect: {
-									id: userId
-								}
-							},
 							board: {
 								connect: {
 									id: boardId
@@ -86,32 +97,119 @@ export class SprintService {
 								connect: {
 									id: sprint.id
 								}
-							},
+							}
 						}
 					})
 				)
-			);
-	
+			)
 
-			return { sprint, lists };
-		});
+			return { sprint, lists }
+		})
 	}
 
 	async update(dto: Partial<SprintDto>, sprintId: string, userId: string) {
-		return this.prisma.sprint.update({
+		const sprintWithBoard = await this.prisma.sprint.findUnique({
 			where: {
-				userId,
 				id: sprintId
 			},
-			data: dto
-		})
-	}
-
-	async delete(sprintId: string) {
-		return this.prisma.sprint.delete({
-			where: {
-				id: sprintId
+			include: {
+				board: true
 			}
 		})
+
+		if (!sprintWithBoard && userId) {
+			throw new Error('Sprint not found')
+		}
+
+		const boardRoles = await this.prisma.roles.findMany({
+			where: {
+				boardId: sprintWithBoard.boardId
+			},
+			include: {
+				users: true
+			}
+		})
+
+
+		if (boardRoles[0].users.length === 0) {
+			return {
+				success: false,
+				message: 'Only scrum master can update sprint'
+			}
+		}
+
+
+		if (!(boardRoles[0].users[0].id === userId)) {
+			return {
+				success: false,
+				message: 'Only scrum master can update sprint'
+			}
+		}
+
+		if (boardRoles[0].users[0].id === userId) {
+			const updatedSprint = await this.prisma.sprint.update({
+				where: {
+					id: sprintId
+				},
+				data: dto
+			})
+			return {
+				success: true,
+				message: 'Sprint updated successfully',
+				data: updatedSprint 
+			}
+		}
+	}
+
+	async delete( sprintId: string, userId: string) {
+		const sprintWithBoard = await this.prisma.sprint.findUnique({
+			where: {
+				id: sprintId
+			},
+			include: {
+				board: true
+			}
+		})
+
+		if (!sprintWithBoard && userId) {
+			throw new Error('Sprint not found')
+		}
+
+		const boardRoles = await this.prisma.roles.findMany({
+			where: {
+				boardId: sprintWithBoard.boardId
+			},
+			include: {
+				users: true
+			}
+		})
+
+
+		if (boardRoles[0].users.length === 0) {
+			return {
+				success: false,
+				message: 'Only scrum master can delete sprint'
+			}
+		}
+
+
+		if (!(boardRoles[0].users[0].id === userId)) {
+			return {
+				success: false,
+				message: 'Only scrum master can delete sprint'
+			}
+		}
+
+		if (boardRoles[0].users[0].id === userId) {
+				await this.prisma.sprint.delete({
+				where: {
+					id: sprintId
+				},
+			})
+			return {
+				success: true,
+				message: 'Sprint updated successfully',
+			}
+		}
 	}
 }

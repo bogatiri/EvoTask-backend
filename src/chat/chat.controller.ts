@@ -43,8 +43,8 @@ export class ChatController {
 	@HttpCode(200)
 	@Post()
 	@Auth()
-	async create(@Body() dto: ChatDto, @CurrentUser('id') userId: string) {
-		return this.chatService.create(dto, userId)
+	async create(@Body() dto: ChatDto) {
+		return this.chatService.create(dto)
 	}
 
 	// @UsePipes(new ValidationPipe())

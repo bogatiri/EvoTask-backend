@@ -29,6 +29,10 @@ export class CardDto {
 	@IsOptional()
 	completed?: boolean
 
+	@IsBoolean()
+	@IsOptional()
+	isSubtaskVisible?: boolean
+
 	@IsString()
 	@IsOptional()
 	createdAt?: string
@@ -40,6 +44,7 @@ export class CardDto {
 	@IsString()
 	@IsOptional()
 	points?: string
+
 }
 
 

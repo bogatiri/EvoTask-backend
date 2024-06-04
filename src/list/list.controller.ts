@@ -22,37 +22,28 @@ export class ListController {
 
 	@Get(':id')
 	@Auth()
-	async findByBoardId(
-		@Param('id') id: string
-	) {
-		return this.listService.findByBoardId( id )
-	}
-
-	@Get()
-	@Auth()
-	async getAll(@CurrentUser('id') userId: string) {
-		return this.listService.getAll(userId)
+	async findByBoardId(@Param('id') id: string) {
+		return this.listService.findByBoardId(id)
 	}
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post()
 	@Auth()
-	async create(@Body() body: any, @CurrentUser('id') userId: string) {
-		const { board, ...dto } = body
+	async create(@Body() body: any) {
+		const { board, sprintId, ...dto } = body
 
-		return this.listService.create(dto, board, userId)
+		return this.listService.create(dto, board, sprintId)
 	}
 
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Put('update-order')
 	@Auth()
-	async updateOrder(@Body() listOrderDto: ListOrderDto, ) {
-	
+	async updateOrder(@Body() listOrderDto: ListOrderDto) {
 		return this.listService.updateOrder(listOrderDto.lists)
 	}
-	
+
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Put(':id')
@@ -62,7 +53,7 @@ export class ListController {
 		@CurrentUser('id') userId: string,
 		@Param('id') id: string
 	) {
-		return this.listService.update(dto, id, userId)
+		return this.listService.update(dto, id)
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -70,8 +61,8 @@ export class ListController {
 	@Post('copy')
 	@Auth()
 	async copyList(@Body() body: any) {
-		const { listId, boardId} = body
-		return this.listService.copyList( listId, boardId)
+		const { listId, boardId } = body
+		return this.listService.copyList(listId, boardId)
 	}
 
 	@HttpCode(200)

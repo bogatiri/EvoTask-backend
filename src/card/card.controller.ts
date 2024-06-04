@@ -43,8 +43,17 @@ export class CardController {
 	@Post()
 	@Auth()
 	async create(@Body() body: any, @CurrentUser('id') userId: string) {
-		const { list,sprintId, ...dto } = body
-		return this.cardService.create(dto, userId, list, sprintId)
+		const { list, ...dto } = body
+		return this.cardService.create(dto, userId, list)
+	}
+
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
+	@Post('createSubtask')
+	@Auth()
+	async createSubtask(@Body() body: any, @CurrentUser('id') userId: string) {
+		const { parentId, ...dto } = body
+		return this.cardService.createSubtask(dto,parentId, userId)
 	}
 
 	@UsePipes(new ValidationPipe())

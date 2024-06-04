@@ -47,14 +47,21 @@ export class UserController {
 	async updateProfile(@CurrentUser('id') id: string, @Body() dto: UserDto) {
 		return this.userService.update(id, dto)
 	}
+	@Post('/avatar')
+	@Auth()
+	async getAvatar(
+		@Body() avatar: any
+	) {
+		const image = avatar.avatar
+		return this.userService.getAvatar( image )
+	}
 
-	@Post(':userId/avatar')
+	@Post(':id')
 	@UseInterceptors(
-		FileInterceptor('file', {
+		FileInterceptor('avatar', {
 			storage: multer.diskStorage({
-				destination: './uploads/temp', // временное хранилище файлов
+				destination: './static/uploads/temp',
 				filename: (req, file, cb) => {
-					// Получение расширения файла
 					const fileExt = path.extname(file.originalname)
 					// Генерация имени файла используя UUID
 					const filename = uuidv4() + fileExt
@@ -64,9 +71,13 @@ export class UserController {
 		})
 	)
 	async uploadAvatar(
-		@Param('userId') userId: string,
+		@Param('id') id: string,
 		@UploadedFile() file: Express.Multer.File
 	) {
-		return this.userService.uploadAvatar(userId, file)
+		return this.userService.uploadAvatar(id, file)
 	}
+
+	
+
+
 }

@@ -1,60 +1,78 @@
+/* eslint-disable no-console */
 import { Injectable } from '@nestjs/common'
 import { hash } from 'argon2'
+import { startOfDay, subDays } from 'date-fns'
+import * as fs from 'fs'
+import * as path from 'path'
 import { AuthDto } from 'src/auth/dto/auth.dto'
 import { PrismaService } from 'src/prisma.service'
+import { v4 as uuidv4 } from 'uuid'
 import { UserDto } from './user.dto'
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import * as path from 'path';
-import { startOfDay, subDays } from 'date-fns'
 
 @Injectable()
 export class UserService {
-	private readonly uploadPath = 'uploads/avatars'
+	private readonly uploadPath = 'static/uploads/avatars'
 
 	constructor(private prisma: PrismaService) {
-		const fullUploadPath = path.resolve(this.uploadPath);
-    if (!fs.existsSync(fullUploadPath)) {
-      fs.mkdirSync(fullUploadPath, { recursive: true });
-	}
-}
-
-
-async findById(id: string) {
-	return this.prisma.user.findUnique({
-		where: {
-			id
-		},
-		include: {
-			roles: true,
-			cards: true
+		const fullUploadPath = path.resolve(this.uploadPath)
+		if (!fs.existsSync(fullUploadPath)) {
+			fs.mkdirSync(fullUploadPath, { recursive: true })
 		}
-	})
-}
+	}
 
-async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
-	// Генерация уникального имени файла
-	// Вы можете использовать оригинальное имя файла или добавить дополнительные проверки
-	const fileExt = path.extname(file.originalname);
-	const fileName = uuidv4() + fileExt;
-	
-	// Полный путь к новому файлу
-	const filePath = path.join(this.uploadPath, fileName);
+	async getAvatar(image: string) {
+		const basePath = path.join(__dirname, '..', '..')
+		const fullPath = path.join(basePath, image)
+		const avatarBuffer = await fs.promises.readFile(fullPath)
 
-	// Асинхронное перемещение файла в целевую директорию
-	fs.promises.rename(file.path, filePath);
+		const avatarBase64 = avatarBuffer.toString('base64')
 
-	// Обновление URL аватара в базе данных
-	const avatar = path.join('/static', this.uploadPath, fileName);
-	await this.prisma.user.update({
-		where: { id: userId },
-		data: { avatar }
-	});
+		const avatarDataURL = `data:image/jpeg;base64,${avatarBase64}`
+		return avatarDataURL
+	}
 
-	// Вернуть URL, по которому будет доступен аватар
-	return avatar;
-}
+	async findById(id: string) {
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id
+			},
+			include: {
+				roles: true,
+				cards: true
+			}
+		})
 
+
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { password, avatar, ...rest } = user
+
+			return {
+				...rest,
+				avatar: await this.getAvatar(user.avatar)
+			}
+		} catch (err) {
+			console.error('Ошибка при чтении файла аватара:', err)
+		}
+	}
+
+	async uploadAvatar(
+		userId: string,
+		file: Express.Multer.File
+	): Promise<string> {
+		// const fileExt = path.extname(file.originalname);
+		const fileName = uuidv4()
+		const filePath = path.join(this.uploadPath, fileName)
+
+		fs.promises.rename(file.path, filePath)
+		const avatar = path.join(this.uploadPath, fileName)
+		await this.prisma.user.update({
+			where: { id: userId },
+			data: { avatar }
+		})
+
+		return avatar
+	}
 
 	getById(id: string) {
 		return this.prisma.user.findUnique({
@@ -109,17 +127,24 @@ async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
 			}
 		})
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const { password, ...rest } = profile
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const { password, avatar, ...rest } = profile
 
-		return {
-			user: rest,
-			statistics: [
-				{ label: 'Total', value: totalTasks },
-				{ label: 'Completed tasks', value: completedTasks },
-				{ label: 'Today tasks', value: todayTasks },
-				{ label: 'Week tasks', value: weekTasks }
-			]
+			return {
+				user: {
+					...rest,
+					avatar: await this.getAvatar(profile.avatar)
+				},
+				statistics: [
+					{ label: 'Total', value: totalTasks },
+					{ label: 'Completed tasks', value: completedTasks },
+					{ label: 'Today tasks', value: todayTasks },
+					{ label: 'Week tasks', value: weekTasks }
+				]
+			}
+		} catch (err) {
+			console.error('Ошибка при чтении файла аватара:', err)
 		}
 	}
 

@@ -10,7 +10,7 @@ async function bootstrap() {
 	app.use('/static/uploads', express.static('uploads'));
 	app.use(cookieParser())
 	app.enableCors({
-		origin: ['http://localhost:3000'],
+		origin: ['http://192.168.0.7:3000'],
 		credentials: true,
 		exposedHeaders: 'set-cookie'
 	})

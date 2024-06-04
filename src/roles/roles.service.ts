@@ -41,10 +41,9 @@ export class RoleService {
 	}
 
 
-	async update(dto: Partial<RolesDto>, id: string, userId: string) {
+	async update(dto: Partial<RolesDto>, id: string) {
 		return this.prisma.roles.update({
 			where: {
-				userId,
 				id
 			},
 			data: dto

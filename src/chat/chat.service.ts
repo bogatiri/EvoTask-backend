@@ -23,11 +23,7 @@ export class ChatService {
 							id: boardId
 						}
 					},
-					creator: {
-						connect: {
-							id: userId
-						}
-					}
+
 				}
 			})
 		}
@@ -50,12 +46,11 @@ export class ChatService {
 		})
 	}
 
-	async create(dto: ChatDto, userId) {
+	async create(dto: ChatDto) {
 		const { cardId, listId, boardId, ...otherData } = dto
 
 		const createData: Prisma.ChatCreateInput = {
-			...otherData,
-			creator: { connect: { id: userId } }
+			...otherData
 		}
 
 		if (cardId) {
@@ -71,10 +66,9 @@ export class ChatService {
 		return this.prisma.chat.create({ data: createData })
 	}
 
-	async update(dto: Partial<ChatDto>, chatId: string, userId: string) {
+	async update(dto: Partial<ChatDto>, chatId: string) {
 		return this.prisma.chat.update({
 			where: {
-				userId,
 				id: chatId
 			},
 			data: dto

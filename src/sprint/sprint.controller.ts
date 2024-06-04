@@ -56,7 +56,7 @@ export class SprintController {
 	@HttpCode(200)
 	@Delete(':id')
 	@Auth()
-	async delete(@Param('id') id: string) {
-		return this.sprintService.delete(id)
+	async delete(@Param('id') id: string, @CurrentUser('id') userId: string,) {
+		return this.sprintService.delete(id, userId)
 	}
 }

@@ -24,6 +24,17 @@ export class ListService {
 					include: {
 						users: true,
 						creator: true,
+						subtasks: {
+							include: {
+								users: true,
+								creator: true,
+								comments: {
+									include: {
+										user: true
+									}
+								}
+							}
+						},
 						comments: {
 							include: {
 								user: true
@@ -35,18 +46,7 @@ export class ListService {
 		})
 	}
 
-	async getAll(userId: string) {
-		return this.prisma.list.findMany({
-			where: {
-				userId
-			},
-			orderBy: {
-				order: ('asc')
-			}
-		})
-	}
-
-	async create(dto: ListDto, board: string, userId: string,  sprintId?: string) {
+	async create(dto: ListDto, board: string,  sprintId?: string) {
 		const currentMaxOrder = await this.prisma.list.count({
 			where: { boardId: board },
 		});
@@ -55,11 +55,6 @@ export class ListService {
 			board: {
 				connect: {
 					id: board
-				}
-			},
-			creator: {
-				connect: {
-					id: userId
 				}
 			},
 			order: currentMaxOrder + 1
@@ -112,11 +107,6 @@ export class ListService {
 							id: boardId
 						}
 					}, 
-					creator: {
-						connect: {
-							id: listToCopy.userId
-						}
-					},
 					type: listToCopy.type,
 					description: listToCopy.description,
 					name: `${listToCopy.name} - copy`,
@@ -131,10 +121,10 @@ export class ListService {
 							connect: {
 								id: newList.id
 							}
-						} , // Новый созданный listId для карточки
+						} , 
 						creator: {
 							connect: {
-								id: newList.userId
+								id: card.userId
 							}
 						},
 						name: card.name,
@@ -177,17 +167,14 @@ export class ListService {
 		})
 	}
 	
-	async update(dto: Partial<ListDto>, id: string, userId: string) {
+	async update(dto: Partial<ListDto>, id: string) {
 		return this.prisma.list.update({
 			where: {
-				userId,
 				id
 			},
 			data: dto
 		})
 	}
-
-
 
 	async delete(listId: string) {
 		return this.prisma.list.delete({

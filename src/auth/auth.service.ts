@@ -168,22 +168,24 @@ export class AuthService {
 
 		res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
 			httpOnly: true,
-			domain: 'localhost',
+			domain: '192.168.0.7',
 			expires: expiresIn,
-			secure: true,
+			secure: false,
 			// lax if production
-			sameSite: 'none'
+			sameSite: 'lax'
 		})
+		console.log(refreshToken)
 	}
 
 	removeRefreshTokenFromResponse(res: Response) {
 		res.cookie(this.REFRESH_TOKEN_NAME, '', {
 			httpOnly: true,
-			domain: 'localhost',
+			domain: '192.168.0.7',
 			expires: new Date(0),
-			secure: true,
+			secure: false,
 			// lax if production
-			sameSite: 'none'
+			sameSite: 'lax'
 		})
+		console.log('qwe')
 	}
 }

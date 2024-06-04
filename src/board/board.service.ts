@@ -14,6 +14,43 @@ export class BoardService {
 				id
 			},
 			include: {
+				sprints:{
+
+					include: {
+						list: {
+							orderBy: {
+								order: 'asc'
+							},
+							include: {
+								cards: {
+									orderBy: {
+										order: 'asc'
+									},
+									include: {
+										users: true,
+										creator: true,
+										subtasks: {
+											include: {
+												users: true,
+												creator: true,
+												comments: {
+													include: {
+														user: true
+													}
+												}
+											}
+										},
+										comments: {
+											include: {
+												user: true
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				} ,			
 				users: {
 					include: {
 						roles: true
@@ -117,12 +154,7 @@ export class BoardService {
 					},
 					chats: {
 						create: {
-							name: 'board',
-							creator: {
-								connect: {
-									id: userId
-								}
-							}
+							name: 'board'
 						}
 					}
 				},
@@ -143,11 +175,6 @@ export class BoardService {
 									id: board.id
 								}
 							},
-							creator: {
-								connect: {
-									id: userId
-								}
-							}
 						},
 						include: {
 							users: true

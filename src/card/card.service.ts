@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma.service'
 import { CardDto, CardOrderUpdateDto, CardUpdate } from './card.dto'
@@ -106,7 +107,7 @@ export class CardService {
 		})
 	}
 
-	async create(dto: CardDto, userId: string, list: string, sprintId?: string) {
+	async create(dto: CardDto, userId: string, list: string) {
 		const currentMaxOrder = await this.prisma.card.count({
 			where: { listId: list }
 		})
@@ -123,23 +124,34 @@ export class CardService {
 					id: userId
 				}
 			},
-			// users: {
-			// 	connect: {
-			// 		id: userId
-			// 	}
-			// },
 			order: currentMaxOrder + 1
 		}
 
-		if (sprintId) {
-			data.sprint = { connect: { id: sprintId } }
-		}
+
 
 		return this.prisma.card.create({
 			data: data,
 			include: {
 				users: true
 			}
+		})
+	}
+
+	async createSubtask(dto: CardDto, parentId: string, userId: string ){
+		return this.prisma.card.create({
+				data: {
+					...dto,
+					parent: {
+						connect: {
+							id: parentId
+						}
+					},
+					creator: {
+						connect: {
+							id: userId
+						}
+					}
+				} 
 		})
 	}
 
@@ -184,7 +196,7 @@ export class CardService {
 			const cardToCopy = await prisma.card.findUnique({
 				where: { id: cardId },
 				include: {
-					users: true
+					users: true,
 				}
 			})
 
@@ -219,7 +231,7 @@ export class CardService {
 					updatedAt: new Date() // Обновляем дату обновления
 				},
 				include: {
-					users: true
+					users: true,
 				}
 			})
 
@@ -228,34 +240,85 @@ export class CardService {
 	}
 
 	async update(dto: Partial<CardUpdate>, cardId: string) {
-		return this.prisma.card.update({
-			where: {
-				id: cardId
-			},
-			data: dto
-		})
+		const currentCard = await this.prisma.card.findUnique({
+			where: { id: cardId },
+			include: { list: true },
+		});
+	
+		if (currentCard) {
+			// Проверяем, изменилось ли состояние completed
+			const isCompletedChanged = dto.completed !== undefined && dto.completed !== currentCard.completed && !currentCard.parentId;
+	
+			if (isCompletedChanged) {
+				let listTypeToFind;
+				if (dto.completed === true) {
+					listTypeToFind = 'done';
+				} else if (dto.completed === false) {
+					listTypeToFind = currentCard.list.sprintId ? 'to_do' : 'backlog';
+				}
+	
+				// Ищем целевую колонку
+				const targetList = await this.prisma.list.findFirst({
+					where: {
+						boardId: currentCard.list.boardId,
+						sprintId: (listTypeToFind === 'to_do' || listTypeToFind === 'done') ? currentCard.list.sprintId : null,
+						type: listTypeToFind,
+					},
+				});
+	
+				if (targetList) {
+					// Обновляем listId если состояние completed действительно изменилось
+					await this.prisma.card.update({
+						where: { id: cardId },
+						data: {
+							...dto,
+							listId: targetList.id,
+						},
+					});
+				}
+			} else {
+				// Обновляем карточку, но без изменения listId если состояние completed не изменилось
+				await this.prisma.card.update({
+					where: { id: cardId },
+					data: dto,
+				});
+			}
+		}
+	
+		// Возвращаем обновлённую карточку
+		return this.prisma.card.findUnique({
+			where: { id: cardId },
+		});
 	}
+	
 
 	async updateOrder(cardsWithNewOrder: CardOrderUpdateDto[]) {
 		return this.prisma.$transaction(async prisma => {
-			const updatePromises = cardsWithNewOrder.map(({ id, order, listId }) =>
-				prisma.card.update({
+			const updatePromises = cardsWithNewOrder.map(async ({ id, order, listId }) => {
+				// Получаем тип листа (колонки) по listId
+				const list = await prisma.list.findUnique({
+					where: { id: listId },
+				});
+	
+				const completed = list?.type === 'done';
+	
+				return prisma.card.update({
 					where: { id },
 					data: {
 						order,
+						completed: completed ? true : false, 
 						list: {
 							connect: {
 								id: listId
 							}
 						}
 					}
-				})
-			)
-
-			return Promise.all(updatePromises)
-		})
+				});
+			});
+	
+			return Promise.all(updatePromises);
+		});
 	}
-
 	async delete(cardId: string) {
 		return this.prisma.card.delete({
 			where: {

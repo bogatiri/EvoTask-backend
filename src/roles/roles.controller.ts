@@ -33,8 +33,6 @@ export class RolesController {
 		@Param('id') id: string
 	) {
 		const {userId, boardId} = body 
-		console.log(id)
-		console.log(userId)
 		return this.rolesService.assignARole(userId, boardId, id)
 	}
 
