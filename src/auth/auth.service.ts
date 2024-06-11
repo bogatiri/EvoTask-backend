@@ -24,10 +24,16 @@ export class AuthService {
 
 	async sendConfirmationCode(dto: AuthDto) {
     const user = await this.userService.getByEmail(dto.email);
-
     if (!user) throw new NotFoundException('User not found');
+
+
+		if (user.confirmationExpires && new Date(user.confirmationExpires) > new Date()) {
+
+			return { message: 'Confirmation code is still valid.' };
+		}
+
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
-		const confirmationExpires = new Date(Date.now() + 60*60*1000)
+		const confirmationExpires = new Date(Date.now() + 60*5*1000)
 
 		await this.userService.update(user.id, {
 			confirmationCode,
@@ -46,7 +52,74 @@ export class AuthService {
 			from:process.env.EMAIL,
 			to: dto.email,
 			subject: 'Your confirmation code',
-			text: `Use this code to confinr your sign-in: ${confirmationCode}`
+			html: `
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<style>
+					body {
+						font-family: 'Arial', sans-serif;
+						background-color: #f4f4f4;
+						margin: 0;
+						padding: 0;
+					}
+					.container {
+						width: 90%;
+						max-width: 550px;
+						margin: 0 auto;
+						background-color: #ffffff;
+						box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+						padding: 20px;
+					}
+					.header {
+						background-color: #4285f4;
+						color: #ffffff;
+						padding: 10px 20px;
+						text-align: center;
+					}
+					.content {
+						padding: 20px;
+					}
+					h1 {
+						color: #333333;
+					}
+					p {
+						font-size: 16px;
+						line-height: 1.5;
+						color: #666666;
+					}
+					.code {
+						font-size: 24px;
+						font-weight: bold;
+						color: #4285f4;
+					}
+					.footer {
+						margin-top: 20px;
+						padding-top: 20px;
+						border-top: 1px solid #dddddd;
+						text-align: center;
+						font-size: 12px;
+						color: #999999;
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<div class="header">
+						<h1>Your Confirmation Code</h1>
+					</div>
+					<div class="content">
+						<p>Use the following code to confirm your sign-in:</p>
+						<p class="code">${confirmationCode}</p>
+						<p>This code will expire in 5 minutes.</p>
+					</div>
+					<div class="footer">
+						<p>If you did not request this code, you can safely ignore this email.</p>
+					</div>
+				</div>
+			</body>
+			</html>
+		`
 		}
 
 		await transporter.sendMail(mailOptions)
@@ -63,16 +136,15 @@ export class AuthService {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { password, confirmationCode, confirmationExpires, ...user } = await this.validateUser(dto)
 			const tokens = this.issueTokens(user.id)
-	
+			await this.userService.clearConfirmationCode(user.id)
+
 			return {
 				user,
 				...tokens
 			}
-
 			
-			// await this.userService.clearConfirmationCode(user.id);
 		} else {
-			throw new UnauthorizedException('Неверный код подтверждения или его время истекло.');
+			return { message: 'Неверный код подтверждения или пароль' };
 		}
 	}
 
@@ -168,24 +240,22 @@ export class AuthService {
 
 		res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
 			httpOnly: true,
-			domain: '192.168.0.7',
+			domain: process.env.DOMAIN,
 			expires: expiresIn,
 			secure: false,
 			// lax if production
 			sameSite: 'lax'
 		})
-		console.log(refreshToken)
 	}
 
 	removeRefreshTokenFromResponse(res: Response) {
 		res.cookie(this.REFRESH_TOKEN_NAME, '', {
 			httpOnly: true,
-			domain: '192.168.0.7',
+			domain: process.env.DOMAIN,
 			expires: new Date(0),
 			secure: false,
 			// lax if production
 			sameSite: 'lax'
 		})
-		console.log('qwe')
 	}
 }

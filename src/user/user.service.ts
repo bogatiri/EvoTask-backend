@@ -49,11 +49,23 @@ export class UserService {
 
 			return {
 				...rest,
-				avatar: await this.getAvatar(user.avatar)
+				avatar: avatar.includes('static/uploads') ? await this.getAvatar(user.avatar) : user.avatar
 			}
 		} catch (err) {
 			console.error('Ошибка при чтении файла аватара:', err)
 		}
+	}
+
+	async clearConfirmationCode(userId: string){
+		return await this.prisma.user.update({
+			where: {
+				id: userId, // ID пользователя, у которого нужно очистить код
+			},
+			data: {
+				confirmationCode: null,
+				confirmationExpires: null 
+			},
+		});
 	}
 
 	async uploadAvatar(
@@ -131,10 +143,12 @@ export class UserService {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { password, avatar, ...rest } = profile
 
+			const userAvatar = avatar.includes('static/uploads') ? await this.getAvatar(profile.avatar) : profile.avatar
+
 			return {
 				user: {
 					...rest,
-					avatar: await this.getAvatar(profile.avatar)
+					avatar: userAvatar
 				},
 				statistics: [
 					{ label: 'Total', value: totalTasks },

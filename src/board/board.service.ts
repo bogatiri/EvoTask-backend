@@ -15,7 +15,9 @@ export class BoardService {
 			},
 			include: {
 				sprints:{
-
+					orderBy: {
+						createdAt: 'asc'
+					},
 					include: {
 						list: {
 							orderBy: {

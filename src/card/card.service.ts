@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { Type_list } from '@prisma/client'
 import { PrismaService } from 'src/prisma.service'
 import { CardDto, CardOrderUpdateDto, CardUpdate } from './card.dto'
 
@@ -111,7 +112,13 @@ export class CardService {
 		const currentMaxOrder = await this.prisma.card.count({
 			where: { listId: list }
 		})
+		const currentList = await this.prisma.list.findUnique({
+			where: {
+				id: list
+			}
+		})
 
+		const isCompleted = currentList.type === 'done' ? true : false
 		const data: any = {
 			...dto,
 			list: {
@@ -124,10 +131,17 @@ export class CardService {
 					id: userId
 				}
 			},
+			completed: isCompleted,
 			order: currentMaxOrder + 1
 		}
 
-
+		if (currentList.sprintId) {
+			data.sprint = {
+				connect: {
+					id: currentList.sprintId
+				}
+			}
+		}
 
 		return this.prisma.card.create({
 			data: data,
@@ -137,21 +151,21 @@ export class CardService {
 		})
 	}
 
-	async createSubtask(dto: CardDto, parentId: string, userId: string ){
+	async createSubtask(dto: CardDto, parentId: string, userId: string) {
 		return this.prisma.card.create({
-				data: {
-					...dto,
-					parent: {
-						connect: {
-							id: parentId
-						}
-					},
-					creator: {
-						connect: {
-							id: userId
-						}
+			data: {
+				...dto,
+				parent: {
+					connect: {
+						id: parentId
 					}
-				} 
+				},
+				creator: {
+					connect: {
+						id: userId
+					}
+				}
+			}
 		})
 	}
 
@@ -182,12 +196,11 @@ export class CardService {
 				},
 				data: {
 					cards: {
-						connect: [cardToPick] 
+						connect: [cardToPick]
 					}
 				}
 			})
 			return newCard
-
 		})
 	}
 
@@ -196,7 +209,7 @@ export class CardService {
 			const cardToCopy = await prisma.card.findUnique({
 				where: { id: cardId },
 				include: {
-					users: true,
+					users: true
 				}
 			})
 
@@ -231,7 +244,7 @@ export class CardService {
 					updatedAt: new Date() // Обновляем дату обновления
 				},
 				include: {
-					users: true,
+					users: true
 				}
 			})
 
@@ -242,92 +255,138 @@ export class CardService {
 	async update(dto: Partial<CardUpdate>, cardId: string) {
 		const currentCard = await this.prisma.card.findUnique({
 			where: { id: cardId },
-			include: { list: true },
-		});
-	
+			include: { list: true }
+		})
+
 		if (currentCard) {
 			// Проверяем, изменилось ли состояние completed
-			const isCompletedChanged = dto.completed !== undefined && dto.completed !== currentCard.completed && !currentCard.parentId;
-	
+			const isCompletedChanged =
+				dto.completed !== undefined &&
+				dto.completed !== currentCard.completed &&
+				!currentCard.parentId
+
 			if (isCompletedChanged) {
-				let listTypeToFind;
+				let listTypeToFind
 				if (dto.completed === true) {
-					listTypeToFind = 'done';
+					listTypeToFind = 'done'
 				} else if (dto.completed === false) {
-					listTypeToFind = currentCard.list.sprintId ? 'to_do' : 'backlog';
+					listTypeToFind = currentCard.list.sprintId ? 'to_do' : 'backlog'
 				}
-	
+
 				// Ищем целевую колонку
 				const targetList = await this.prisma.list.findFirst({
 					where: {
 						boardId: currentCard.list.boardId,
-						sprintId: (listTypeToFind === 'to_do' || listTypeToFind === 'done') ? currentCard.list.sprintId : null,
-						type: listTypeToFind,
-					},
-				});
-	
+						sprintId:
+							listTypeToFind === 'to_do' || listTypeToFind === 'done'
+								? currentCard.list.sprintId
+								: null,
+						type: listTypeToFind
+					}
+				})
+
 				if (targetList) {
 					// Обновляем listId если состояние completed действительно изменилось
 					await this.prisma.card.update({
 						where: { id: cardId },
 						data: {
 							...dto,
-							listId: targetList.id,
-						},
-					});
+							listId: targetList.id
+						}
+					})
 				}
 			} else {
 				// Обновляем карточку, но без изменения listId если состояние completed не изменилось
 				await this.prisma.card.update({
 					where: { id: cardId },
-					data: dto,
-				});
+					data: dto
+				})
 			}
 		}
-	
+
 		// Возвращаем обновлённую карточку
 		return this.prisma.card.findUnique({
-			where: { id: cardId },
-		});
+			where: { id: cardId }
+		})
 	}
-	
+
+	async moveCardToAnotherList(cardId: string, listId: string) {
+		const destinationList = await this.prisma.list.findUnique({
+			where: {
+				id: listId
+			}
+		})
+
+		const isCompleted =
+			destinationList.type === ('done' as Type_list) ? true : false
+
+		const data: any = {
+			completed: isCompleted,
+			list: {
+				connect: {
+					id: listId
+				}
+			}
+		}
+
+		if (destinationList.sprintId) {
+			data.sprint = {
+				connect: {
+					id: destinationList.sprintId
+				}
+			}
+		} else {
+			data.sprint = {
+				disconnect: true
+			}
+		}
+
+		return this.prisma.card.update({
+			where: {
+				id: cardId
+			},
+			data
+		})
+	}
 
 	async updateOrder(cardsWithNewOrder: CardOrderUpdateDto[]) {
 		return this.prisma.$transaction(async prisma => {
-			const updatePromises = cardsWithNewOrder.map(async ({ id, order, listId }) => {
-				// Получаем тип листа (колонки) по listId
-				const list = await prisma.list.findUnique({
-					where: { id: listId },
-				});
-	
-				const completed = list?.type === 'done';
-	
-				return prisma.card.update({
-					where: { id },
-					data: {
-						order,
-						completed: completed ? true : false, 
-						list: {
-							connect: {
-								id: listId
+			const updatePromises = cardsWithNewOrder.map(
+				async ({ id, order, listId }) => {
+					const list = await prisma.list.findUnique({
+						where: { id: listId }
+					})
+
+					const completed = list?.type === 'done'
+
+					const sprintIdUpdateCondition = list?.sprintId
+						? { connect: { id: list.sprintId } }
+						: { disconnect: true }
+
+					return prisma.card.update({
+						where: { id },
+						data: {
+							order,
+							completed: completed ? true : false,
+							sprint: sprintIdUpdateCondition,
+							list: {
+								connect: {
+									id: listId
+								}
 							}
 						}
-					}
-				});
-			});
-	
-			return Promise.all(updatePromises);
-		});
+					})
+				}
+			)
+
+			return Promise.all(updatePromises)
+		})
 	}
+
 	async delete(cardId: string) {
 		return this.prisma.card.delete({
 			where: {
 				id: cardId
-				// list: {
-				// 	board: {
-				// 		userId
-				// 	}
-				// }
 			}
 		})
 	}

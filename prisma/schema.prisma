@@ -42,8 +42,6 @@ model User{
   messages          Message[]
   attachments       Attachment[]
   comments          Comment[]
-  timeBlocks        TimeBlock[]
-  pomodoroSessions  PomodoroSession[]
 
   @@map("user")
 }
@@ -60,52 +58,6 @@ model Task {
   userId            String          @map("user_id")
   
   @@map("task")
-}
-
-model TimeBlock{
-  id                String          @id              @default(uuid())
-  createdAt         DateTime        @default(now())  @map("created_at")
-  updatedAt         DateTime        @updatedAt       @map("updated_at")
-
-  name              String
-  color             String?
-  order             Int             @default(1)
-  duration          Int
-
-  user              User            @relation(fields: [userId], references: [id])
-  userId            String          @map("user_id")
-  
-  @@map("time_block")
-}
-
-model PomodoroSession{
-  id                String          @id              @default(uuid())
-  createdAt         DateTime        @default(now())  @map("created_at")
-  updatedAt         DateTime        @updatedAt       @map("updated_at")
-
-  isCompleted       Boolean?        @default(false) @map("is_completed")
-
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String          @map("user_id")
-
-  rounds            PomodoroRound[]
-
-  
-  @@map("pomodoro_session")
-}
-
-model PomodoroRound{
-  id                String          @id              @default(uuid())
-  createdAt         DateTime        @default(now())  @map("created_at")
-  updatedAt         DateTime        @updatedAt       @map("updated_at")
-
-  totalSeconds      Int             @map("total_seconds")
-  isCompleted       Boolean?        @default(false)  @map("is_completed")
-
-  session           PomodoroSession @relation(fields: [pomodoroSessionId], references: [id], onDelete: Cascade)
-  pomodoroSessionId String          @map("user_id")
-  
-  @@map("pomodoro_round")
 }
 
 model Board {
@@ -136,7 +88,6 @@ model Board {
 
   @@map("board")
 }
-
 model List {
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -161,7 +112,6 @@ model List {
   
   @@map("list")
 }
-
 model Card{
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -187,7 +137,8 @@ model Card{
   creator           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String          @map("user_id")
 
-
+    sprint            Sprint?         @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprintId          String?         @map("sprint_id")
 
   attachments       Attachment[]
   comments          Comment[]
@@ -196,7 +147,6 @@ model Card{
   @@map("card")
   @@index([listId])
 }
-
 model Sprint{
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -214,11 +164,11 @@ model Sprint{
   board             Board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId           String          @map("board_id")
 
+  cards             Card[]
   list              List[]
 
   @@map("sprint")
 }
-
 model Chat {
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -241,7 +191,6 @@ model Chat {
   
   @@map("chat")
 }
-
 model Message {
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -259,7 +208,6 @@ model Message {
 
   @@map("message")
 }
-
 model Attachment {
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -281,7 +229,6 @@ model Attachment {
   
   @@map("attachment")
 }
-
 model Roles {
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")
@@ -294,7 +241,6 @@ model Roles {
   board             Board?          @relation(fields: [boardId], references: [id],  onDelete: Cascade)
   boardId           String?         @map("board_id")
 }
-
 model Comment {
   id                String          @id              @default(uuid())
   createdAt         DateTime        @default(now())  @map("created_at")

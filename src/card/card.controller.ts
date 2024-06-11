@@ -82,6 +82,15 @@ export class CardController {
 		return this.cardService.updateOrder(cardOrderDto.cards)
 	}
 
+	@UsePipes(new ValidationPipe())
+	@HttpCode(200)
+	@Put('moveCardToAnotherList')
+	@Auth()
+	async moveCardToAnotherList(@Body() body: any) {
+		const {cardId, listId} = body
+		return this.cardService.moveCardToAnotherList(cardId, listId)
+	}
+
 	@HttpCode(200)
   @Put(':id/users')
   async addUserToCard(
