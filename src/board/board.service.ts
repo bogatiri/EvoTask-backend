@@ -234,7 +234,7 @@ export class BoardService {
 		}
 
 		if (boardCreator.userId === userId) {
-			const deletedBoard = await this.prisma.sprint.delete({
+			const deletedBoard = await this.prisma.board.delete({
 				where: {
 					userId,
 					id: boardId
