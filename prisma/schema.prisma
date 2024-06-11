@@ -23,7 +23,7 @@ model User{
   about             String?
   password          String
   phone             String?
-  avatar            String?         
+  avatar            String?         @default("https://images.unsplash.com/photo-1477093782505-e10aaeb27c6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w1ODAyNjN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MTc5NDY1NDV8&ixlib=rb-4.0.3&q=80&w=1080")
   workInterval      Int?            @default(50)     @map("work_interval")
   breakInterval     Int?            @default(10)     @map("break_interval")
   intervalsCount    Int?            @default(7)      @map("intervals_count")
