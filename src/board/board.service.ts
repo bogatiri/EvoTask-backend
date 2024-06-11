@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { Name_Roles } from '@prisma/client'
 import { PrismaService } from 'src/prisma.service'
 import { BoardDto } from './board.dto'
@@ -33,6 +33,9 @@ export class BoardService {
 										users: true,
 										creator: true,
 										subtasks: {
+											orderBy: {
+												createdAt: 'asc'
+											},
 											include: {
 												users: true,
 												creator: true,
@@ -89,7 +92,10 @@ export class BoardService {
 		})
 
 		if (!user) {
-			throw new Error(`User with email ${email} not found`)
+			throw new HttpException(
+				`User with email ${email} not found`,
+				HttpStatus.NOT_FOUND
+			)
 		}
 
 		const boardExist = user.boards.some(board => board.id === boardId)

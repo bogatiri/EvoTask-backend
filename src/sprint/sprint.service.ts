@@ -81,11 +81,13 @@ export class SprintService {
 
 			const listTypes = ['to_do', 'in_progress', 'done', 'blocked', 'feedback']
 
+			const listNames =['Новые задачи', 'В работе', 'Выполнены', 'Отменены', 'На проверке']
+
 			const lists = await Promise.all(
 				listTypes.map((type, index) =>
 					prisma.list.create({
 						data: {
-							name: 'qwe',
+							name: listNames[index],
 							type: type as Type_list,
 							order: index + 1,
 							board: {
