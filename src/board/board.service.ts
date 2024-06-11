@@ -14,7 +14,8 @@ export class BoardService {
 				id
 			},
 			include: {
-				sprints:{
+				creator: true,
+				sprints: {
 					orderBy: {
 						createdAt: 'asc'
 					},
@@ -52,7 +53,7 @@ export class BoardService {
 							}
 						}
 					}
-				} ,			
+				},
 				users: {
 					include: {
 						roles: true
@@ -176,7 +177,7 @@ export class BoardService {
 								connect: {
 									id: board.id
 								}
-							},
+							}
 						},
 						include: {
 							users: true
@@ -190,20 +191,60 @@ export class BoardService {
 	}
 
 	async update(dto: Partial<BoardDto>, boardId: string, userId: string) {
-		return this.prisma.board.update({
-			where: {
-				userId,
-				id: boardId
-			},
-			data: dto
-		})
-	}
-
-	async delete(boardId: string) {
-		return this.prisma.board.delete({
+		const boardCreator = await this.prisma.board.findUnique({
 			where: {
 				id: boardId
 			}
 		})
+
+		if (!(boardCreator.userId === userId)) {
+			return {
+				success: false,
+				message: 'Only creator can update board'
+			}
+		}
+
+		if (boardCreator.userId === userId) {
+			const updatedBoard = await this.prisma.sprint.update({
+				where: {
+					userId,
+					id: boardId
+				},
+				data: dto
+			})
+			return {
+				success: true,
+				message: 'Board updated successfully',
+				data: updatedBoard
+			}
+		}
+	}
+
+	async delete(boardId: string, userId: string) {
+		const boardCreator = await this.prisma.board.findUnique({
+			where: {
+				id: boardId
+			}
+		})
+		if (!(boardCreator.userId === userId)) {
+			return {
+				success: false,
+				message: 'Only creator can delete board'
+			}
+		}
+
+		if (boardCreator.userId === userId) {
+			const deletedBoard = await this.prisma.sprint.delete({
+				where: {
+					userId,
+					id: boardId
+				}
+			})
+			return {
+				success: true,
+				message: 'Board deleted successfully',
+				data: deletedBoard
+			}
+		}
 	}
 }

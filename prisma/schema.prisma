@@ -23,7 +23,7 @@ model User{
   about             String?
   password          String
   phone             String?
-  avatar            String?
+  avatar            String?         
   workInterval      Int?            @default(50)     @map("work_interval")
   breakInterval     Int?            @default(10)     @map("break_interval")
   intervalsCount    Int?            @default(7)      @map("intervals_count")

@@ -20,13 +20,10 @@ import { BoardService } from './board.service'
 export class BoardController {
 	constructor(private readonly boardService: BoardService) {}
 
-
 	@Get(':id')
 	@Auth()
-	async findById(
-		@Param('id') id: string
-	) {
-		return this.boardService.findById( id )
+	async findById(@Param('id') id: string) {
+		return this.boardService.findById(id)
 	}
 
 	@Get()
@@ -56,19 +53,18 @@ export class BoardController {
 	}
 
 	@HttpCode(200)
-  @Put(':id/users')
-  async addUserToBoard(
-    @Param('id') boardId: string, 
-    @Body('email') email: string 
-  ){
-
-    return this.boardService.addUserToBoard(email, boardId);
-  }
+	@Put(':id/users')
+	async addUserToBoard(
+		@Param('id') boardId: string,
+		@Body('email') email: string
+	) {
+		return this.boardService.addUserToBoard(email, boardId)
+	}
 
 	@HttpCode(200)
 	@Delete(':id')
 	@Auth()
-	async delete(@Param('id') id: string) {
-		return this.boardService.delete(id)
+	async delete(@Param('id') id: string, @CurrentUser('id') userId: string) {
+		return this.boardService.delete(id, userId)
 	}
 }
