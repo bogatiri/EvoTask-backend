@@ -102,21 +102,45 @@ export class ListService {
 					order: { increment: 1 },
 				},
 			});
+
+			
 	
+			const data: any = {
+				board: {
+					connect: {
+						id: boardId
+					}
+				}, 
+				type: listToCopy.type,
+				description: listToCopy.description,
+				name: `${listToCopy.name} - copy`,
+				order: listToCopy.order + 1
+			};
+			
+			// Если у исходного списка есть sprintId, добавляем его в объект данных
+			if (listToCopy.sprintId) {
+				const currentSprint = await this.prisma.sprint.findUnique({
+					where: {
+						id: listToCopy.sprintId
+					},
+					include: {
+						list: true
+					}
+				})
+
+				const newOrder = currentSprint.list.length
+				data.order = newOrder + 1,
+				data.sprint = {
+					connect: {
+						id: listToCopy.sprintId
+					}
+				};
+			}
+
 			const newList = await prisma.list.create({
-				data: {
-					board: {
-						connect: {
-							id: boardId
-						}
-					}, 
-					type: listToCopy.type,
-					description: listToCopy.description,
-					name: `${listToCopy.name} - copy`,
-					order: listToCopy.order + 1,
-				},
+				data: data
 			});
-	
+
 			if (listToCopy.cards) {
 				await Promise.all(listToCopy.cards.map(card => prisma.card.create({
 					data: {
