@@ -136,7 +136,8 @@ export class ListService {
 						users: {
 							connect: card.users.map(user => ({ id: user.id }))
 						},
-						priority: card.priority
+						priority: card.priority,
+						points: card.points
 					},
 					include:{ users: true}
 				})));
