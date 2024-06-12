@@ -6,8 +6,8 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const httpsOptions = {
-        key: fs.readFileSync('/etc/letsencrypt/live/evotask.ru/privkey.pem'),
-        cert: fs.readFileSync('/etc/letsencrypt/live/evotask.ru/fullchain.pem'),
+        key: fs.readFileSync('../../etc/letsencrypt/live/evotask.ru/privkey.pem'),
+        cert: fs.readFileSync('../../etc/letsencrypt/live/evotask.ru/fullchain.pem'),
     };
 
     const app = await NestFactory.create(AppModule, { httpsOptions });
