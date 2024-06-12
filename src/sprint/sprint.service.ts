@@ -38,6 +38,9 @@ export class SprintService {
 								users: true,
 								creator: true,
 								subtasks: {
+									orderBy: {
+										createdAt: 'asc'
+									},
 									include: {
 										users: true,
 										creator: true,

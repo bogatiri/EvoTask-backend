@@ -211,7 +211,7 @@ export class BoardService {
 		}
 
 		if (boardCreator.userId === userId) {
-			const updatedBoard = await this.prisma.sprint.update({
+			const updatedBoard = await this.prisma.board.update({
 				where: {
 					userId,
 					id: boardId

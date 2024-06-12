@@ -25,6 +25,9 @@ export class ListService {
 						users: true,
 						creator: true,
 						subtasks: {
+							orderBy: {
+								createdAt: 'asc'
+							},
 							include: {
 								users: true,
 								creator: true,
