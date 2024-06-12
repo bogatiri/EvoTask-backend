@@ -16,7 +16,7 @@ async function bootstrap() {
     app.use('/static/uploads', express.static('uploads'));
     app.use(cookieParser());
     app.enableCors({
-        origin: ['http://localhost:3000', 'http://87.228.9.112:3000', 'https://evotask.ru', 'https://evotask.ru:3000'],
+        origin: ['http://localhost:3000', 'http://87.228.9.112:3000', 'https://87.228.9.112:3000', 'https://evotask.ru', 'https://evotask.ru:3000'],
         credentials: true,
         exposedHeaders: 'set-cookie',
     });
