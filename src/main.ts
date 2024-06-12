@@ -1,13 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as fs from 'fs';
 import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const httpsOptions = {
-        key: fs.readFileSync('/etc/letsencrypt/live/evotask.ru/privkey.pem'),
-        cert: fs.readFileSync('/etc/letsencrypt/live/evotask.ru/fullchain.pem'),
+        key: process.env.PRIVKEY,
+        cert: process.env.FULLCHAIN,
     };
 
     const app = await NestFactory.create(AppModule, { httpsOptions });
