@@ -141,6 +141,7 @@ export class ListService {
 			const newList = await prisma.list.create({
 				data: data
 			});
+			console.log(newList)
 
 			if (listToCopy.cards) {
 				await Promise.all(listToCopy.cards.map(card => prisma.card.create({
