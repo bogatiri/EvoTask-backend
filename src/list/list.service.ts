@@ -129,6 +129,7 @@ export class ListService {
 				})
 
 				const newOrder = currentSprint.list.length
+				console.log(newOrder)
 				data.order = newOrder + 1,
 				data.sprint = {
 					connect: {
