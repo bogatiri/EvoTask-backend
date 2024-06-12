@@ -242,7 +242,7 @@ export class AuthService {
 			httpOnly: true,
 			domain: process.env.DOMAIN,
 			expires: expiresIn,
-			secure: false,
+			secure: true,
 			// lax if production
 			sameSite: 'lax'
 		})
@@ -253,7 +253,7 @@ export class AuthService {
 			httpOnly: true,
 			domain: process.env.DOMAIN,
 			expires: new Date(0),
-			secure: false,
+			secure: true,
 			// lax if production
 			sameSite: 'lax'
 		})
